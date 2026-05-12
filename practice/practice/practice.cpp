@@ -1,9 +1,8 @@
-﻿//The fisrts practice of "add" function
+﻿//The fisrts practice of "add" function 
 #include<iostream>
-int add(int a, int b) {      //定义函数
-	return a + b;
-}
+#include"math.h"
 int main() {
 	int result{ add(3 , 5) };
 	std::cout << "reslut=" << result << std::endl;
+	return 0;
 }
