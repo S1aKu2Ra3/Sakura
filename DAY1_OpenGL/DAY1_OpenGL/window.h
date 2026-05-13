@@ -6,10 +6,13 @@ class Window
 public:
 	Window(int width, int height, const char* title);
 	~Window();
-
-	void clear(float r, float g, float b);
+	void pollEvents();
 	bool shouldClose();
+
 	void swapBuffers();
+
 private:
+
 	GLFWwindow* window;
+
 };

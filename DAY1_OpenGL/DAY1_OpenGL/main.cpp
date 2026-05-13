@@ -11,7 +11,8 @@ int main()
 
 		window.swapBuffers();
 
-		glfwPollEvents();
+		window.pollEvents();
+
 	}
 	return 0;
 }

@@ -23,11 +23,6 @@ Window::~Window()
 	glfwDestroyWindow(window);
 	glfwTerminate();
 }
-void Window::clear(float r, float g, float b)
-{
-	glClearColor(r, g, b, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-}
 bool Window::shouldClose()
 {
 	return glfwWindowShouldClose(window);
@@ -35,4 +30,8 @@ bool Window::shouldClose()
 void Window::swapBuffers()
 {
 	glfwSwapBuffers(window);
+}
+void Window::pollEvents()
+{
+	glfwPollEvents();
 }
