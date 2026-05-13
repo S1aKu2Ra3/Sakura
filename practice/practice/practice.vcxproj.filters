@@ -21,9 +21,15 @@
     <ClCompile Include="math.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="player.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="math.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="player.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
