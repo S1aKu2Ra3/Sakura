@@ -18,20 +18,20 @@ Window::Window(int width, int height, const char* title)
 		std::cout << "Failed to initialize GLAD" << std::endl;
 	}
 }
-Window::~Window()
+Window::~Window()        //析构函数
 {
 	glfwDestroyWindow(window);
 	glfwTerminate();
 }
-bool Window::shouldClose()
+bool Window::shouldClose()        //是否关闭窗口
 {
 	return glfwWindowShouldClose(window);
 }
-void Window::swapBuffers()
+void Window::swapBuffers()        //交换缓冲区
 {
 	glfwSwapBuffers(window);
 }
-void Window::pollEvents()
+void Window::pollEvents()       //处理窗口事件
 {
 	glfwPollEvents();
 }
