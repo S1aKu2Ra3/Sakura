@@ -1,39 +1,54 @@
 #include<glad/glad.h>
 #include"Render.h"
 #include<iostream>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
 
 float vertices[] =
 {
-	-0.5f , -0.5f , 0.0f,     1.0f , 0.0f , 0.0f ,
-	 0.5f , -0.5f , 0.0f,     0.0f , 1.0f , 0.0f ,
-	 0.0f , 0.5f ,0.0f,       0.0f , 0.0f , 1.0f
+	 0.5f , 0.5f , 0.0f,     1.0f , 0.0f , 0.0f ,   1.0f , 1.0f ,
+	 0.5f , -0.5f , 0.0f,     0.0f , 1.0f , 0.0f ,   1.0f , 0.0f , 
+   -0.5f , -0.5f ,0.0f,       0.0f , 0.0f , 1.0f ,   0.0f , 0.0f ,
+	-0.5f , 0.5f , 0.0f,      1.0f , 1.0f , 0.0f ,   0.0f , 1.0f
 
+};
+unsigned int indices[] =      //缓冲对象（EBO）  索引数据
+{
+	0 , 1 , 3 ,
+	1 , 2 , 3 
 };
 
 const char* VertexShaderSource =                       //顶点着色器源码
 "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
 "layout (location = 1) in vec3 aColor;\n"
+"layout (location = 2) in vec2 aTexCoord;\n"
 "out vec3 ourColor;\n"
+"out vec2 TexCoord;\n"
 "void main()\n"
 "{\n"
 "    gl_Position = vec4(aPos.x , aPos.y , aPos.z , 1.0);\n"
 "	ourColor = aColor;\n"
+"	TexCoord = aTexCoord;\n"
 "}";
 
 const char* fragmentShaderSource =               //片段着色器源码
 "#version 330 core\n"
 "out vec4 FragColor;\n"
 "in vec3 ourColor;\n"
+"in vec2 TexCoord;\n"
+"uniform sampler2D ourTexture;\n"
 "void main()\n"
 "{\n"
-"   FragColor = vec4(ourColor, 1.0);\n"
+"   FragColor = texture(ourTexture, TexCoord);\n"
 "}";
 
 
 unsigned int shaderProgram;     //完整（全局函数）
 unsigned int VBO;    //无符号数（OpenGL多为编号）     存储数据
 unsigned int VAO;    //解释数据，记录数据格式
+unsigned int EBO;    //索引数据
+unsigned int texture;    //纹理对象
 
 void Render::initTriangle()
 {
@@ -84,17 +99,48 @@ void Render::initTriangle()
 
 	glGenVertexArrays(1, &VAO);        //创建解释并保留地址
 	glGenBuffers(1, &VBO);            //创建缓存并保留地址
+	glGenBuffers(1, &EBO);            //创建索引缓存并保留地址
+	glGenTextures(1, &texture);        //创建纹理对象并保留地址
 
 	glBindVertexArray(VAO);           //绑定
 
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);        //绑定索引缓冲区对象到目标
+
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);          //绑定缓冲区对象到目标
 
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);      //写入数据  （写入区域，写入大小，写入对象，相关操作）
+	glBindTexture(GL_TEXTURE_2D, texture);        //绑定纹理对象到目标
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);   //定义顶点属性的布局（索引属性，vec数量，分量类型，数据是否初始化，分量步长，偏移量）
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);      //写入数据  （写入区域，写入大小，写入对象，相关操作）
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);      //写入数据  （写入区域，写入大小，写入对象，相关操作）
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);   //定义顶点属性的布局（索引属性，vec数量，分量类型，数据是否初始化，分量步长，偏移量）
 	glEnableVertexAttribArray(0);          //启用索引
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));   //定义顶点属性的布局（索引属性，vec数量，分量类型，数据是否初始化，分量步长，偏移量）
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));   //定义顶点属性的布局（索引属性，vec数量，分量类型，数据是否初始化，分量步长，偏移量）
 	glEnableVertexAttribArray(1);          //启用索引
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));   //定义顶点属性的布局（索引属性，vec数量，分量类型，数据是否初始化，分量步长，偏移量）
+	glEnableVertexAttribArray(2);          //启用索引
+	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	int width;
+	int height;
+	int nrChannels;
+
+	stbi_set_flip_vertically_on_load(true);
+
+	unsigned char* data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+
+	if (data)
+	{	
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	stbi_image_free(data);
 }
 
 void Render::clear(float r, float g, float b)  //清屏颜色设置
@@ -108,5 +154,5 @@ void Render::drawTriangle()           //执行画三角操作
 {
 	glUseProgram(shaderProgram);         
 	glBindVertexArray(VAO);                //绑定顶点数据
-	glDrawArrays(GL_TRIANGLES, 0, 3);           //绘制（画三角，从顶点0开始，共绘制三个顶点）
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);           //绘制三角形
 }
