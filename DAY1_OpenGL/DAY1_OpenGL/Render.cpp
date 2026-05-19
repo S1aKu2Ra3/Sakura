@@ -3,6 +3,9 @@
 #include<iostream>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
+#include<GLFW/glfw3.h>
+#include<cmath>
+
 
 float vertices[] =
 {
@@ -156,9 +159,14 @@ void Render::clear(float r, float g, float b)  //清屏颜色设置
 void Render::drawTriangle()           //执行画三角操作
 {
 	glUseProgram(shaderProgram);  
-
+	
 	int mixlocation = glGetUniformLocation(shaderProgram, "mixValue");     //获取uniform变量位置
-	glUniform1f(mixlocation, 0.5f);     //设置uniform变量值
+
+	float mixvalue = (sin(glfwGetTime()) + 1.0f) / 2.0f;     //计算混合值，范围在0到1之间
+
+	float timevalue = glfwGetTime();     //获取时间
+
+	glUniform1f(mixlocation, mixvalue);     //设置uniform变量值
 	glBindVertexArray(VAO);                //绑定顶点数据
 	glBindTexture(GL_TEXTURE_2D, texture);        //绑定纹理对象到目标
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);           //绘制三角形
