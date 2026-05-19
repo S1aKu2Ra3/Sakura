@@ -1,6 +1,15 @@
 #include<iostream>
 #include<glad/glad.h>
 #include"window.h"
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)        //窗口大小改变回调函数
+{
+	std::cout << "Framebuffer resized: " << width << " x " << height << std::endl;
+
+	glViewport(0, 0, width, height);
+}
+
+
 Window::Window(int width, int height, const char* title) 
 {
 	if (!glfwInit())
@@ -17,6 +26,9 @@ Window::Window(int width, int height, const char* title)
 	{
 		std::cout << "Failed to initialize GLAD" << std::endl;
 	}
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+	glViewport(0, 0, width, height);
 }
 Window::~Window()        //析构函数
 {
