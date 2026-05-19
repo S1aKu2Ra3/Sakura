@@ -38,9 +38,12 @@ const char* fragmentShaderSource =               //片段着色器源码
 "in vec3 ourColor;\n"
 "in vec2 TexCoord;\n"
 "uniform sampler2D ourTexture;\n"
+"uniform float mixValue;\n"
 "void main()\n"
 "{\n"
-"   FragColor = texture(ourTexture, TexCoord);\n"
+"vec4 texColor = texture(ourTexture, TexCoord);\n"
+"vec4 vertexColor = vec4(ourColor, 1.0);\n"
+"   FragColor = mix (texColor , texColor * vertexColor , mixValue );\n"    //纹理*顶点
 "}";
 
 
@@ -152,7 +155,12 @@ void Render::clear(float r, float g, float b)  //清屏颜色设置
 
 void Render::drawTriangle()           //执行画三角操作
 {
-	glUseProgram(shaderProgram);         
+	glUseProgram(shaderProgram);  
+
+	int mixlocation = glGetUniformLocation(shaderProgram, "mixValue");     //获取uniform变量位置
+	glUniform1f(mixlocation, 0.5f);     //设置uniform变量值
 	glBindVertexArray(VAO);                //绑定顶点数据
+	glBindTexture(GL_TEXTURE_2D, texture);        //绑定纹理对象到目标
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);           //绘制三角形
+
 }
