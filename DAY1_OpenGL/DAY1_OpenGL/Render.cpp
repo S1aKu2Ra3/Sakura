@@ -5,6 +5,9 @@
 #include <stb/stb_image.h>
 #include<GLFW/glfw3.h>
 #include<cmath>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 
 float vertices[] =
@@ -28,9 +31,10 @@ const char* VertexShaderSource =                       //顶点着色器源码
 "layout (location = 2) in vec2 aTexCoord;\n"
 "out vec3 ourColor;\n"
 "out vec2 TexCoord;\n"
+"uniform mat4 transform;\n"
 "void main()\n"
 "{\n"
-"    gl_Position = vec4(aPos.x , aPos.y , aPos.z , 1.0);\n"
+"    gl_Position = transform * vec4(aPos, 1.0);\n"
 "	ourColor = aColor;\n"
 "	TexCoord = aTexCoord;\n"
 "}";
@@ -158,13 +162,41 @@ void Render::clear(float r, float g, float b)  //清屏颜色设置
 
 void Render::drawTriangle()           //执行画三角操作
 {
+
+	float timevalue = glfwGetTime();     //获取时间
+
 	glUseProgram(shaderProgram);  
+
+	glm::mat4 transform = glm::mat4(1.0f);
+
+	
+	transform = glm::rotate(
+		transform,
+		(float)glfwGetTime(),
+		glm::vec3(0.0f, 0.0f, 1.0f)
+	);
+
+	transform = glm::translate(
+		transform,
+		glm::vec3(0.5f, 0.3f, 0.0f)
+	);
+
+	float scaleValue = (sin(glfwGetTime()) + 1.0f) / 2.0f;
+	scaleValue = scaleValue * 0.5f + 0.5f;     //缩放值范围在0.5到1之间
+
+	transform = glm::scale(
+		transform,
+		glm::vec3(scaleValue, scaleValue, scaleValue)
+	);
+
+	int transformLocation = glGetUniformLocation(shaderProgram, "transform");
+	glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(transform));
 	
 	int mixlocation = glGetUniformLocation(shaderProgram, "mixValue");     //获取uniform变量位置
 
 	float mixvalue = (sin(glfwGetTime()) + 1.0f) / 2.0f;     //计算混合值，范围在0到1之间
 
-	float timevalue = glfwGetTime();     //获取时间
+	
 
 	glUniform1f(mixlocation, mixvalue);     //设置uniform变量值
 	glBindVertexArray(VAO);                //绑定顶点数据
