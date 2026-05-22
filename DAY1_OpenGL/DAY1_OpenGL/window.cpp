@@ -47,3 +47,15 @@ void Window::pollEvents()       //处理窗口事件
 {
 	glfwPollEvents();
 }
+float Window::getAspectRatio()       //获取窗口宽高比
+{
+	int width, height;
+	glfwGetFramebufferSize(window, &width, &height);
+	if (height == 0)
+	{
+		return 1.0f; // 避免除以零
+	}
+	return static_cast<float>(width) / static_cast<float>(height);
+}
+
+

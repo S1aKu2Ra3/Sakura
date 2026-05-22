@@ -10,7 +10,7 @@ int main()
 	{
 		render.clear(0.2f, 0.3f, 0.3f);    //清屏
 
-		render.drawTriangle();
+		render.drawTriangle(window.getAspectRatio());
 
 		window.swapBuffers();         //交换缓冲区
 

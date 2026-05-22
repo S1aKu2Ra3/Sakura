@@ -11,6 +11,8 @@ public:
 
 	void swapBuffers();
 
+	float getAspectRatio();
+
 private:
 
 	GLFWwindow* window;

@@ -9,14 +9,56 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-
 float vertices[] =
 {
-	 0.5f , 0.5f , 0.0f,     1.0f , 0.0f , 0.0f ,   1.0f , 1.0f ,
-	 0.5f , -0.5f , 0.0f,     0.0f , 1.0f , 0.0f ,   1.0f , 0.0f , 
-   -0.5f , -0.5f ,0.0f,       0.0f , 0.0f , 1.0f ,   0.0f , 0.0f ,
-	-0.5f , 0.5f , 0.0f,      1.0f , 1.0f , 0.0f ,   0.0f , 1.0f
+	// positions           // colors          // tex coords
+	// back face
+	-0.5f, -0.5f, -0.5f,   0.2f, 0.4f, 1.0f,  0.0f, 0.0f,
+	 0.5f, -0.5f, -0.5f,   0.2f, 0.4f, 1.0f,  1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,   0.2f, 0.4f, 1.0f,  1.0f, 1.0f,
+	 0.5f,  0.5f, -0.5f,   0.2f, 0.4f, 1.0f,  1.0f, 1.0f,
+	-0.5f,  0.5f, -0.5f,   0.2f, 0.4f, 1.0f,  0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,   0.2f, 0.4f, 1.0f,  0.0f, 0.0f,
 
+	// front face
+	-0.5f, -0.5f,  0.5f,   1.0f, 0.4f, 0.2f,  0.0f, 0.0f,
+	 0.5f, -0.5f,  0.5f,   1.0f, 0.4f, 0.2f,  1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,   1.0f, 0.4f, 0.2f,  1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,   1.0f, 0.4f, 0.2f,  1.0f, 1.0f,
+	-0.5f,  0.5f,  0.5f,   1.0f, 0.4f, 0.2f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,   1.0f, 0.4f, 0.2f,  0.0f, 0.0f,
+
+	// left face
+	-0.5f,  0.5f,  0.5f,   0.4f, 1.0f, 0.4f,  1.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f,   0.4f, 1.0f, 0.4f,  1.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,   0.4f, 1.0f, 0.4f,  0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,   0.4f, 1.0f, 0.4f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,   0.4f, 1.0f, 0.4f,  0.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,   0.4f, 1.0f, 0.4f,  1.0f, 0.0f,
+
+	// right face
+	 0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 0.3f,  1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 0.3f,  1.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 0.3f,  0.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 0.3f,  0.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 0.3f,  0.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 0.3f,  1.0f, 0.0f,
+
+	 // bottom face
+	 -0.5f, -0.5f, -0.5f,   0.3f, 1.0f, 1.0f,  0.0f, 1.0f,
+	  0.5f, -0.5f, -0.5f,   0.3f, 1.0f, 1.0f,  1.0f, 1.0f,
+	  0.5f, -0.5f,  0.5f,   0.3f, 1.0f, 1.0f,  1.0f, 0.0f,
+	  0.5f, -0.5f,  0.5f,   0.3f, 1.0f, 1.0f,  1.0f, 0.0f,
+	 -0.5f, -0.5f,  0.5f,   0.3f, 1.0f, 1.0f,  0.0f, 0.0f,
+	 -0.5f, -0.5f, -0.5f,   0.3f, 1.0f, 1.0f,  0.0f, 1.0f,
+
+	 // top face
+	 -0.5f,  0.5f, -0.5f,   1.0f, 0.3f, 1.0f,  0.0f, 1.0f,
+	  0.5f,  0.5f, -0.5f,   1.0f, 0.3f, 1.0f,  1.0f, 1.0f,
+	  0.5f,  0.5f,  0.5f,   1.0f, 0.3f, 1.0f,  1.0f, 0.0f,
+	  0.5f,  0.5f,  0.5f,   1.0f, 0.3f, 1.0f,  1.0f, 0.0f,
+	 -0.5f,  0.5f,  0.5f,   1.0f, 0.3f, 1.0f,  0.0f, 0.0f,
+	 -0.5f,  0.5f, -0.5f,   1.0f, 0.3f, 1.0f,  0.0f, 1.0f
 };
 unsigned int indices[] =      //缓冲对象（EBO）  索引数据
 {
@@ -31,10 +73,12 @@ const char* VertexShaderSource =                       //顶点着色器源码
 "layout (location = 2) in vec2 aTexCoord;\n"
 "out vec3 ourColor;\n"
 "out vec2 TexCoord;\n"
-"uniform mat4 transform;\n"
+"uniform mat4 model;\n"
+"uniform mat4 view;\n"
+"uniform mat4 projection;\n"
 "void main()\n"
 "{\n"
-"    gl_Position = transform * vec4(aPos, 1.0);\n"
+"    gl_Position =projection * view * model * vec4(aPos, 1.0);\n"
 "	ourColor = aColor;\n"
 "	TexCoord = aTexCoord;\n"
 "}";
@@ -62,6 +106,8 @@ unsigned int texture;    //纹理对象
 
 void Render::initTriangle()
 {
+
+	glEnable(GL_DEPTH_TEST);
 
 	unsigned int vertexShader;             //顶点（用后删除）
 	unsigned int fragmentShader;           //像素
@@ -156,41 +202,62 @@ void Render::initTriangle()
 void Render::clear(float r, float g, float b)  //清屏颜色设置
 {
 	glClearColor(r, g, b, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 
-void Render::drawTriangle()           //执行画三角操作
+void Render::drawTriangle(float aspectRatio)           //执行画三角操作
 {
 
 	float timevalue = glfwGetTime();     //获取时间
 
 	glUseProgram(shaderProgram);  
 
-	glm::mat4 transform = glm::mat4(1.0f);
+	glm::mat4 model = glm::mat4(1.0f);
 
 	
-	transform = glm::rotate(
-		transform,
+	model = glm::rotate(
+		model,
 		(float)glfwGetTime(),
-		glm::vec3(0.0f, 0.0f, 1.0f)
+		glm::vec3(0.0f, 1.0f, 0.0f)
 	);
 
-	transform = glm::translate(
-		transform,
+	model = glm::translate(
+		model,
 		glm::vec3(0.5f, 0.3f, 0.0f)
 	);
 
 	float scaleValue = (sin(glfwGetTime()) + 1.0f) / 2.0f;
 	scaleValue = scaleValue * 0.5f + 0.5f;     //缩放值范围在0.5到1之间
 
-	transform = glm::scale(
-		transform,
+	model = glm::scale(
+		model,
 		glm::vec3(scaleValue, scaleValue, scaleValue)
 	);
 
-	int transformLocation = glGetUniformLocation(shaderProgram, "transform");
-	glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(transform));
+	glm::mat4 view = glm::mat4(1.0f);
+	view = glm::translate(
+		view,
+		glm::vec3(0.0f, 0.0f, -3.0f)
+	);
+
+	int viewLocation = glGetUniformLocation(shaderProgram, "view");
+	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
+
+	glm::mat4 projection = glm::mat4(1.0f);
+
+	projection = glm::perspective(
+		glm::radians(30.0f),
+		aspectRatio,
+		0.1f,
+		100.0f
+	);
+
+	int projectionLocation = glGetUniformLocation(shaderProgram, "projection");
+	glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
+
+	int modelLocation = glGetUniformLocation(shaderProgram, "model");
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
 	
 	int mixlocation = glGetUniformLocation(shaderProgram, "mixValue");     //获取uniform变量位置
 
@@ -201,6 +268,6 @@ void Render::drawTriangle()           //执行画三角操作
 	glUniform1f(mixlocation, mixvalue);     //设置uniform变量值
 	glBindVertexArray(VAO);                //绑定顶点数据
 	glBindTexture(GL_TEXTURE_2D, texture);        //绑定纹理对象到目标
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);           //绘制三角形
+	glDrawArrays(GL_TRIANGLES, 0 , 36);           //绘制三角形
 
 }
