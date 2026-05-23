@@ -240,10 +240,20 @@ void Render::drawTriangle(float aspectRatio)           //执行画三角操作
 		glm::vec3(scaleValue, scaleValue, scaleValue)
 	);
 
-	glm::mat4 view = glm::mat4(1.0f);
-	view = glm::translate(
-		view,
-		glm::vec3(0.0f, 0.0f, -3.0f)
+	float radius = 10.0f;
+	float cameraSpeed = 0.5f;     // 调整相机旋转速度
+
+	float camX = sin(glfwGetTime() * cameraSpeed) * radius;
+	float camZ = cos(glfwGetTime() * cameraSpeed) * radius;
+
+	glm::vec3 cameraPos = glm::vec3(camX, 8.0f, camZ);            //相机位置
+	glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);           //相机视角
+	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);            //相机上方向
+
+	glm::mat4 view = glm::lookAt(
+		cameraPos,
+		cameraTarget,
+		cameraUp
 	);
 
 	int viewLocation = glGetUniformLocation(shaderProgram, "view");
