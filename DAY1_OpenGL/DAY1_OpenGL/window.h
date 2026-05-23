@@ -12,6 +12,7 @@ public:
 	void swapBuffers();
 
 	float getAspectRatio();
+	bool isKeyPressed(int key);
 
 private:
 

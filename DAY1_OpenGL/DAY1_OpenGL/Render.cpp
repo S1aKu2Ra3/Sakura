@@ -218,7 +218,7 @@ void Render::clear(float r, float g, float b)  //清屏颜色设置
 }
 
 
-void Render::drawTriangle(float aspectRatio)           //执行画三角操作
+void Render::drawTriangle(float aspectRatio , float cameraRadius , float cameraAngle)           //执行画三角操作
 {
 
 	float timevalue = glfwGetTime();     //获取时间
@@ -240,14 +240,13 @@ void Render::drawTriangle(float aspectRatio)           //执行画三角操作
 		glm::vec3(scaleValue, scaleValue, scaleValue)
 	);
 
-	float radius = 10.0f;
 	float cameraSpeed = 0.5f;     // 调整相机旋转速度
 
-	float camX = sin(glfwGetTime() * cameraSpeed) * radius;
-	float camZ = cos(glfwGetTime() * cameraSpeed) * radius;
+	float camX = sin(cameraAngle) * cameraRadius;
+	float camZ = cos(cameraAngle) * cameraRadius;
 
 	glm::vec3 cameraPos = glm::vec3(camX, 8.0f, camZ);            //相机位置
-	glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);           //相机视角
+	glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);                   //相机视角
 	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);            //相机上方向
 
 	glm::mat4 view = glm::lookAt(

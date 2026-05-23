@@ -58,4 +58,7 @@ float Window::getAspectRatio()       //获取窗口宽高比
 	return static_cast<float>(width) / static_cast<float>(height);
 }
 
-
+bool Window::isKeyPressed(int key)        //检查按键是否被按下
+{
+	return glfwGetKey(window, key) == GLFW_PRESS;
+}
