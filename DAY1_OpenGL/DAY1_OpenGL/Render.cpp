@@ -60,6 +60,18 @@ float vertices[] =
 	 -0.5f,  0.5f,  0.5f,   1.0f, 0.3f, 1.0f,  0.0f, 0.0f,
 	 -0.5f,  0.5f, -0.5f,   1.0f, 0.3f, 1.0f,  0.0f, 1.0f
 };
+glm::vec3 cubePositions[] = {
+	glm::vec3(0.0f,  0.0f,  0.0f),
+	glm::vec3(2.0f,  5.0f, -15.0f),
+	glm::vec3(-1.5f, -2.2f, -2.5f),
+	glm::vec3(-3.8f, -2.0f, -12.3f),
+	glm::vec3(2.4f, -0.4f, -3.5f),
+	glm::vec3(-1.7f,  3.0f, -7.5f),
+	glm::vec3(1.3f, -2.0f, -2.5f),
+	glm::vec3(1.5f,  2.0f, -2.5f),
+	glm::vec3(1.5f,  0.2f, -1.5f),
+	glm::vec3(-1.3f,  1.0f, -1.5f)
+};
 unsigned int indices[] =      //缓冲对象（EBO）  索引数据
 {
 	0 , 1 , 3 ,
@@ -215,13 +227,6 @@ void Render::drawTriangle(float aspectRatio)           //执行画三角操作
 
 	glm::mat4 model = glm::mat4(1.0f);
 
-	
-	model = glm::rotate(
-		model,
-		(float)glfwGetTime(),
-		glm::vec3(0.0f, 1.0f, 0.0f)
-	);
-
 	model = glm::translate(
 		model,
 		glm::vec3(0.5f, 0.3f, 0.0f)
@@ -268,6 +273,13 @@ void Render::drawTriangle(float aspectRatio)           //执行画三角操作
 	glUniform1f(mixlocation, mixvalue);     //设置uniform变量值
 	glBindVertexArray(VAO);                //绑定顶点数据
 	glBindTexture(GL_TEXTURE_2D, texture);        //绑定纹理对象到目标
-	glDrawArrays(GL_TRIANGLES, 0 , 36);           //绘制三角形
-
+	for (int i = 0; i < 10; i++)
+	{
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, cubePositions[i]);
+		float angle = 20.0f * i;
+		model = glm::rotate(model, glm::radians(angle) + (float)glfwGetTime(), glm::vec3(1.0f, 0.3f, 0.5f));
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+	}
 }
