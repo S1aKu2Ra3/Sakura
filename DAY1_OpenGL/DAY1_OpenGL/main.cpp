@@ -15,6 +15,7 @@ int main()
 	glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, -1.0f);
 	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 	float yaw = -90.0f;     //初始偏航角
+	float pitch = 0.0f;      //初始俯仰角
 	while ( !window.shouldClose())
 	{
 		render.clear(0.2f, 0.3f, 0.3f);    //清屏
@@ -28,11 +29,22 @@ int main()
 		{
 			yaw += turnspeed;     //按下L键，向右旋转相机
 		}
-
+		if (window.isKeyPressed(GLFW_KEY_I))
+		{
+			pitch += turnspeed;     //按下I键，向上旋转相机
+			if (pitch > 89.0f)     //限制俯仰角，避免翻转
+				pitch = 89.0f;
+		}
+		if (window.isKeyPressed(GLFW_KEY_K))
+		{
+			pitch -= turnspeed;     //按下K键，向下旋转相机
+			if (pitch < -89.0f)     //限制俯仰角，避免翻转
+				pitch = -89.0f;
+		}
 		glm::vec3 front;
-		front.x = cos(glm::radians(yaw));
-		front.y = 0.0f;
-		front.z = sin(glm::radians(yaw));
+		front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+		front.y = sin(glm::radians(pitch));
+		front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 		cameraTarget = glm::normalize(front);     //更新相机目标向量
 		render.drawScene(window.getAspectRatio(), cameraPos, cameraTarget, cameraUp);   //定义相机位置和方向
 		glm::vec3 cameraRight = glm::normalize(glm::cross(cameraTarget, cameraUp));
