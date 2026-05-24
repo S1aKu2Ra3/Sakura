@@ -1,43 +1,70 @@
 #include"window.h"
 #include"Render.h"
 #include<GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 int main()
 {
-	float cameraRadius = 10.0f;     //相机半径
-	float cameraAngle = 0.0f;       //相机角度
+	float cameraspeed = 0.05f;      //相机移动速度
 	Window window(800, 600, "DAY3 Window");   //创建窗口
 	Render render;
 	render.initTriangle();
+	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+	glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, -1.0f);
+	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+	float yaw = -90.0f;     //初始偏航角
 	while ( !window.shouldClose())
 	{
 		render.clear(0.2f, 0.3f, 0.3f);    //清屏
+		float turnspeed = 0.1f;     //旋转速度
+
+		if (window.isKeyPressed(GLFW_KEY_J))
+		{
+			yaw -= turnspeed;     //按下J键，向左旋转相机
+		}
+		if (window.isKeyPressed(GLFW_KEY_L))
+		{
+			yaw += turnspeed;     //按下L键，向右旋转相机
+		}
+
+		glm::vec3 front;
+		front.x = cos(glm::radians(yaw));
+		front.y = 0.0f;
+		front.z = sin(glm::radians(yaw));
+		cameraTarget = glm::normalize(front);     //更新相机目标向量
+		render.drawScene(window.getAspectRatio(), cameraPos, cameraTarget, cameraUp);   //定义相机位置和方向
+		glm::vec3 cameraRight = glm::normalize(glm::cross(cameraTarget, cameraUp));
+
 
 		if (window.isKeyPressed(GLFW_KEY_W))
 		{
-			cameraRadius -= 0.05f;     //按下W键，减小相机半径
+			cameraPos += cameraTarget * cameraspeed;     //按下W键，减小相机半径
 		}
 		if (window.isKeyPressed(GLFW_KEY_S))
 		{
-			cameraRadius += 0.05f;     //按下S键，增大相机半径
+			cameraPos -= cameraTarget * cameraspeed;     //按下S键，增大相机半径
 		}
-		if (cameraRadius < 2.0f)     //限制相机半径的最小值
-		{
-			cameraRadius = 2.0f;
-		}
-		if (cameraRadius > 20.0f)    //限制相机半径的最大值
-		{
-			cameraRadius = 20.0f;
-		}
+		
 		if (window.isKeyPressed(GLFW_KEY_A))
 		{
-			cameraAngle -= 0.02f;      //按下A键，增加相机角度
+			cameraPos -= cameraRight * cameraspeed;     //按下A键，向左移动相机
 		}
 		if (window.isKeyPressed(GLFW_KEY_D))
 		{
-			cameraAngle += 0.02f;      //按下D键，减少相机角度
+			cameraPos += cameraRight * cameraspeed;     //按下D键，向右移动相机
 		}
-
-		render.drawTriangle(window.getAspectRatio(), cameraRadius , cameraAngle);
+		if (window.isKeyPressed(GLFW_KEY_Q))
+		{
+			cameraPos += cameraUp * cameraspeed;        //按下Q键，向上移动相机
+		}
+		if (window.isKeyPressed(GLFW_KEY_E))
+		{
+			cameraPos -= cameraUp * cameraspeed;        //按下E键，向下移动相机
+		}
+		
+		
 
 		window.swapBuffers();         //交换缓冲区
 
