@@ -7,7 +7,6 @@
 #include <glm/gtc/type_ptr.hpp>
 int main()
 {
-	float cameraspeed = 0.05f;      //相机移动速度
 	Window window(800, 600, "DAY3 Window");   //创建窗口
 	Render render;
 	render.initTriangle();
@@ -16,10 +15,16 @@ int main()
 	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 	float yaw = -90.0f;     //初始偏航角
 	float pitch = 0.0f;      //初始俯仰角
+	float deltaTime = 0.0f;    //每帧时间差
+	float lastFrame = 0.0f;      //上次帧的时间
 	while ( !window.shouldClose())
 	{
+		float currentFrame = static_cast<float>(glfwGetTime());     //获取当前时间
+		deltaTime = currentFrame - lastFrame;     //计算每帧时间差
+		lastFrame = currentFrame;     //更新上次帧的时间
 		render.clear(0.2f, 0.3f, 0.3f);    //清屏
-		float turnspeed = 0.1f;     //旋转速度
+		float cameraspeed = 3.0f * deltaTime;      //相机移动速度
+		float turnspeed = 60.0f * deltaTime;     //旋转速度
 
 		if (window.isKeyPressed(GLFW_KEY_J))
 		{
