@@ -83,6 +83,18 @@ void Camera::updateCameraVectors()
 
 	target = glm::normalize(direction);                                //更新相机目标向量
 }
+	
+
+
+glm::mat4 Camera::getViewMatrix() const
+{
+	return glm::lookAt(
+		position,
+		position + target,
+		up
+	);
+}
+
 glm::vec3 Camera::getPosition() const 
 {
 	return position;

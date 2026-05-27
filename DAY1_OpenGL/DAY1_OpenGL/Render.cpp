@@ -1,5 +1,6 @@
 #include<glad/glad.h>
 #include"Render.h"
+#include"camera.h"
 #include<iostream>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
@@ -220,38 +221,11 @@ void Render::clear(float r, float g, float b)  //清屏颜色设置
 
 void Render::drawScene(
 	float aspectRatio,
-	glm::vec3 cameraPos,
-	glm::vec3 cameraTarget,
-	glm::vec3 cameraUp
+	const glm::mat4& view
 )
 
 {
-
-	float timevalue = glfwGetTime();     //获取时间
-
 	glUseProgram(shaderProgram);  
-
-	glm::mat4 model = glm::mat4(1.0f);
-
-	model = glm::translate(
-		model,
-		glm::vec3(0.5f, 0.3f, 0.0f)
-	);
-
-	float scaleValue = (sin(glfwGetTime()) + 1.0f) / 2.0f;
-	scaleValue = scaleValue * 0.5f + 0.5f;     //缩放值范围在0.5到1之间
-
-	model = glm::scale(
-		model,
-		glm::vec3(scaleValue, scaleValue, scaleValue)
-	);
-
-
-	glm::mat4 view = glm::lookAt(
-		cameraPos,
-		cameraPos + cameraTarget,
-		cameraUp
-	);
 
 	int viewLocation = glGetUniformLocation(shaderProgram, "view");
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
@@ -269,7 +243,6 @@ void Render::drawScene(
 	glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
 
 	int modelLocation = glGetUniformLocation(shaderProgram, "model");
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
 	
 	int mixlocation = glGetUniformLocation(shaderProgram, "mixValue");     //获取uniform变量位置
 

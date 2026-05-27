@@ -1,5 +1,6 @@
 #pragma once
 #include<glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 class Window;
 
@@ -9,6 +10,8 @@ public:
 	Camera();
 
 	void processInput(Window& window, float deltaTime);
+
+	glm::mat4 getViewMatrix() const;
 
 	glm::vec3 getPosition() const;
 	glm::vec3 getTarget() const;
