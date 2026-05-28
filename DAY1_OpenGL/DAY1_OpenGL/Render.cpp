@@ -12,54 +12,54 @@
 
 float vertices[] =
 {
-	// positions           // colors          // tex coords
+	// positions           // colors          // tex coords     //Normal
 	// back face
-	-0.5f, -0.5f, -0.5f,   0.2f, 0.4f, 1.0f,  0.0f, 0.0f,
-	 0.5f, -0.5f, -0.5f,   0.2f, 0.4f, 1.0f,  1.0f, 0.0f,
-	 0.5f,  0.5f, -0.5f,   0.2f, 0.4f, 1.0f,  1.0f, 1.0f,
-	 0.5f,  0.5f, -0.5f,   0.2f, 0.4f, 1.0f,  1.0f, 1.0f,
-	-0.5f,  0.5f, -0.5f,   0.2f, 0.4f, 1.0f,  0.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,   0.2f, 0.4f, 1.0f,  0.0f, 0.0f,
+	-0.5f, -0.5f, -0.5f,   0.2f, 0.4f, 1.0f,  0.0f, 0.0f,   0.0f , 0.0f , -1.0f,
+	 0.5f, -0.5f, -0.5f,   0.2f, 0.4f, 1.0f,  1.0f, 0.0f,   0.0f , 0.0f , -1.0f,
+	 0.5f,  0.5f, -0.5f,   0.2f, 0.4f, 1.0f,  1.0f, 1.0f,   0.0f , 0.0f , -1.0f,
+	 0.5f,  0.5f, -0.5f,   0.2f, 0.4f, 1.0f,  1.0f, 1.0f,   0.0f , 0.0f , -1.0f,
+	-0.5f,  0.5f, -0.5f,   0.2f, 0.4f, 1.0f,  0.0f, 1.0f,   0.0f , 0.0f , -1.0f,
+	-0.5f, -0.5f, -0.5f,   0.2f, 0.4f, 1.0f,  0.0f, 0.0f,   0.0f , 0.0f , -1.0f,
 
 	// front face
-	-0.5f, -0.5f,  0.5f,   1.0f, 0.4f, 0.2f,  0.0f, 0.0f,
-	 0.5f, -0.5f,  0.5f,   1.0f, 0.4f, 0.2f,  1.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,   1.0f, 0.4f, 0.2f,  1.0f, 1.0f,
-	 0.5f,  0.5f,  0.5f,   1.0f, 0.4f, 0.2f,  1.0f, 1.0f,
-	-0.5f,  0.5f,  0.5f,   1.0f, 0.4f, 0.2f,  0.0f, 1.0f,
-	-0.5f, -0.5f,  0.5f,   1.0f, 0.4f, 0.2f,  0.0f, 0.0f,
+	-0.5f, -0.5f,  0.5f,   1.0f, 0.4f, 0.2f,  0.0f, 0.0f,   0.0f , 0.0f , 1.0f,
+	 0.5f, -0.5f,  0.5f,   1.0f, 0.4f, 0.2f,  1.0f, 0.0f,   0.0f , 0.0f , 1.0f,
+	 0.5f,  0.5f,  0.5f,   1.0f, 0.4f, 0.2f,  1.0f, 1.0f,   0.0f , 0.0f , 1.0f,
+	 0.5f,  0.5f,  0.5f,   1.0f, 0.4f, 0.2f,  1.0f, 1.0f,   0.0f , 0.0f , 1.0f,
+	-0.5f,  0.5f,  0.5f,   1.0f, 0.4f, 0.2f,  0.0f, 1.0f,   0.0f , 0.0f , 1.0f,
+	-0.5f, -0.5f,  0.5f,   1.0f, 0.4f, 0.2f,  0.0f, 0.0f,   0.0f , 0.0f , 1.0f,
 
 	// left face
-	-0.5f,  0.5f,  0.5f,   0.4f, 1.0f, 0.4f,  1.0f, 0.0f,
-	-0.5f,  0.5f, -0.5f,   0.4f, 1.0f, 0.4f,  1.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,   0.4f, 1.0f, 0.4f,  0.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,   0.4f, 1.0f, 0.4f,  0.0f, 1.0f,
-	-0.5f, -0.5f,  0.5f,   0.4f, 1.0f, 0.4f,  0.0f, 0.0f,
-	-0.5f,  0.5f,  0.5f,   0.4f, 1.0f, 0.4f,  1.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,   0.4f, 1.0f, 0.4f,  1.0f, 0.0f,  -1.0f , 0.0f , 0.0f,
+	-0.5f,  0.5f, -0.5f,   0.4f, 1.0f, 0.4f,  1.0f, 1.0f,  -1.0f , 0.0f , 0.0f,
+	-0.5f, -0.5f, -0.5f,   0.4f, 1.0f, 0.4f,  0.0f, 1.0f,  -1.0f , 0.0f , 0.0f,
+	-0.5f, -0.5f, -0.5f,   0.4f, 1.0f, 0.4f,  0.0f, 1.0f,  -1.0f , 0.0f , 0.0f,
+	-0.5f, -0.5f,  0.5f,   0.4f, 1.0f, 0.4f,  0.0f, 0.0f,  -1.0f , 0.0f , 0.0f,
+	-0.5f,  0.5f,  0.5f,   0.4f, 1.0f, 0.4f,  1.0f, 0.0f,  -1.0f , 0.0f , 0.0f,
 
 	// right face
-	 0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 0.3f,  1.0f, 0.0f,
-	 0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 0.3f,  1.0f, 1.0f,
-	 0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 0.3f,  0.0f, 1.0f,
-	 0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 0.3f,  0.0f, 1.0f,
-	 0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 0.3f,  0.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 0.3f,  1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 0.3f,  1.0f, 0.0f,   1.0f , 0.0f , 0.0f,
+	 0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 0.3f,  1.0f, 1.0f,   1.0f , 0.0f , 0.0f,
+	 0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 0.3f,  0.0f, 1.0f,   1.0f , 0.0f , 0.0f,
+	 0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 0.3f,  0.0f, 1.0f,   1.0f , 0.0f , 0.0f,
+	 0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 0.3f,  0.0f, 0.0f,   1.0f , 0.0f , 0.0f,
+	 0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 0.3f,  1.0f, 0.0f,   1.0f , 0.0f , 0.0f,
 
 	 // bottom face
-	 -0.5f, -0.5f, -0.5f,   0.3f, 1.0f, 1.0f,  0.0f, 1.0f,
-	  0.5f, -0.5f, -0.5f,   0.3f, 1.0f, 1.0f,  1.0f, 1.0f,
-	  0.5f, -0.5f,  0.5f,   0.3f, 1.0f, 1.0f,  1.0f, 0.0f,
-	  0.5f, -0.5f,  0.5f,   0.3f, 1.0f, 1.0f,  1.0f, 0.0f,
-	 -0.5f, -0.5f,  0.5f,   0.3f, 1.0f, 1.0f,  0.0f, 0.0f,
-	 -0.5f, -0.5f, -0.5f,   0.3f, 1.0f, 1.0f,  0.0f, 1.0f,
+	 -0.5f, -0.5f, -0.5f,   0.3f, 1.0f, 1.0f,  0.0f, 1.0f,  0.0f, -1.0f, 0.0f,
+	  0.5f, -0.5f, -0.5f,   0.3f, 1.0f, 1.0f,  1.0f, 1.0f,  0.0f, -1.0f, 0.0f,
+	  0.5f, -0.5f,  0.5f,   0.3f, 1.0f, 1.0f,  1.0f, 0.0f,  0.0f, -1.0f, 0.0f,
+	  0.5f, -0.5f,  0.5f,   0.3f, 1.0f, 1.0f,  1.0f, 0.0f,  0.0f, -1.0f, 0.0f,
+	 -0.5f, -0.5f,  0.5f,   0.3f, 1.0f, 1.0f,  0.0f, 0.0f,  0.0f, -1.0f, 0.0f,
+	 -0.5f, -0.5f, -0.5f,   0.3f, 1.0f, 1.0f,  0.0f, 1.0f,  0.0f, -1.0f, 0.0f,
 
 	 // top face
-	 -0.5f,  0.5f, -0.5f,   1.0f, 0.3f, 1.0f,  0.0f, 1.0f,
-	  0.5f,  0.5f, -0.5f,   1.0f, 0.3f, 1.0f,  1.0f, 1.0f,
-	  0.5f,  0.5f,  0.5f,   1.0f, 0.3f, 1.0f,  1.0f, 0.0f,
-	  0.5f,  0.5f,  0.5f,   1.0f, 0.3f, 1.0f,  1.0f, 0.0f,
-	 -0.5f,  0.5f,  0.5f,   1.0f, 0.3f, 1.0f,  0.0f, 0.0f,
-	 -0.5f,  0.5f, -0.5f,   1.0f, 0.3f, 1.0f,  0.0f, 1.0f
+	 -0.5f,  0.5f, -0.5f,   1.0f, 0.3f, 1.0f,  0.0f, 1.0f,  0.0f ,1.0f , 0.0f,
+	  0.5f,  0.5f, -0.5f,   1.0f, 0.3f, 1.0f,  1.0f, 1.0f,  0.0f ,1.0f , 0.0f,
+	  0.5f,  0.5f,  0.5f,   1.0f, 0.3f, 1.0f,  1.0f, 0.0f,  0.0f ,1.0f , 0.0f,
+	  0.5f,  0.5f,  0.5f,   1.0f, 0.3f, 1.0f,  1.0f, 0.0f,  0.0f ,1.0f , 0.0f,
+	 -0.5f,  0.5f,  0.5f,   1.0f, 0.3f, 1.0f,  0.0f, 0.0f,  0.0f ,1.0f , 0.0f,
+	 -0.5f,  0.5f, -0.5f,   1.0f, 0.3f, 1.0f,  0.0f, 1.0f,  0.0f ,1.0f , 0.0f
 };
 glm::vec3 cubePositions[] = {
 	glm::vec3(0.0f,  0.0f,  0.0f),
@@ -84,14 +84,19 @@ const char* VertexShaderSource =                       //顶点着色器源码
 "layout (location = 0) in vec3 aPos;\n"
 "layout (location = 1) in vec3 aColor;\n"
 "layout (location = 2) in vec2 aTexCoord;\n"
+"layout (location = 3) in vec3 aNormal;\n"
 "out vec3 ourColor;\n"
 "out vec2 TexCoord;\n"
+"out vec3 Normal;\n"
+"out vec3 FragPos;\n"
 "uniform mat4 model;\n"
 "uniform mat4 view;\n"
 "uniform mat4 projection;\n"
 "void main()\n"
 "{\n"
-"    gl_Position =projection * view * model * vec4(aPos, 1.0);\n"
+"   FragPos = vec3(model * vec4(aPos, 1.0));\n"
+"   Normal = mat3(transpose(inverse(model))) * aNormal;\n"
+"   gl_Position =projection * view * model * vec4(aPos, 1.0);\n"
 "	ourColor = aColor;\n"
 "	TexCoord = aTexCoord;\n"
 "}";
@@ -101,13 +106,14 @@ const char* fragmentShaderSource =               //片段着色器源码
 "out vec4 FragColor;\n"
 "in vec3 ourColor;\n"
 "in vec2 TexCoord;\n"
+"in vec3 Normal;\n"
 "uniform sampler2D ourTexture;\n"
 "uniform float mixValue;\n"
 "void main()\n"
 "{\n"
 "vec4 texColor = texture(ourTexture, TexCoord);\n"
 "vec4 vertexColor = vec4(ourColor, 1.0);\n"
-"   FragColor = mix (texColor , texColor * vertexColor , mixValue );\n"    //纹理*顶点
+"FragColor =vec4 (Normal * 0.5 + 0.5 , 1.0 );\n"      
 "}";
 
 
@@ -183,12 +189,14 @@ void Render::initTriangle()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);      //写入数据  （写入区域，写入大小，写入对象，相关操作）
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);      //写入数据  （写入区域，写入大小，写入对象，相关操作）
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);   //定义顶点属性的布局（索引属性，vec数量，分量类型，数据是否初始化，分量步长，偏移量）
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)0);   //定义顶点属性的布局（索引属性，vec数量，分量类型，数据是否初始化，分量步长，偏移量）
 	glEnableVertexAttribArray(0);          //启用索引
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));   //定义顶点属性的布局（索引属性，vec数量，分量类型，数据是否初始化，分量步长，偏移量）
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(3 * sizeof(float)));   //定义顶点属性的布局（索引属性，vec数量，分量类型，数据是否初始化，分量步长，偏移量）
 	glEnableVertexAttribArray(1);          //启用索引
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));   //定义顶点属性的布局（索引属性，vec数量，分量类型，数据是否初始化，分量步长，偏移量）
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(6 * sizeof(float)));   //定义顶点属性的布局（索引属性，vec数量，分量类型，数据是否初始化，分量步长，偏移量）
 	glEnableVertexAttribArray(2);          //启用索引
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(8 * sizeof(float)));   //定义顶点属性的布局（索引属性，vec数量，分量类型，数据是否初始化，分量步长，偏移量）
+	glEnableVertexAttribArray(3);          //启用索引
 	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
