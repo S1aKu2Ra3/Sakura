@@ -107,13 +107,22 @@ const char* fragmentShaderSource =               //片段着色器源码
 "in vec3 ourColor;\n"
 "in vec2 TexCoord;\n"
 "in vec3 Normal;\n"
+"in vec3 FragPos;\n"
 "uniform sampler2D ourTexture;\n"
 "uniform float mixValue;\n"
+"uniform vec3 lightPos;\n"
+"uniform vec3 lightColor;\n"
 "void main()\n"
 "{\n"
+"vec3 norm = normalize(Normal);\n"
+"vec3 lightDir = normalize(vec3(lightPos) - FragPos);\n"
+"float diff = max(dot(norm, lightDir), 0.0);\n"
+"vec3 ambient = 0.1 * lightColor;"
+"vec3 diffuse = diff * vec3(lightColor);\n"
 "vec4 texColor = texture(ourTexture, TexCoord);\n"
-"vec4 vertexColor = vec4(ourColor, 1.0);\n"
-"FragColor =vec4 (Normal * 0.5 + 0.5 , 1.0 );\n"      
+"vec3 baseColor = mix(texColor.rgb, texColor.rgb * ourColor , mixValue);\n"
+"vec3 result = (ambient + diffuse) * baseColor;\n"
+"FragColor = vec4(result , 1.0);\n"      
 "}";
 
 
@@ -235,6 +244,15 @@ void Render::drawScene(
 {
 	glUseProgram(shaderProgram);  
 
+	glm::vec3 lightPos(1.2f, 1.0f, 2.0f);     //光源位置
+	glm::vec3 lightColor(1.0f, 1.0f, 1.0f);     //光源颜色
+
+	int lightPosLocation = glGetUniformLocation(shaderProgram, "lightPos");
+	glUniform3f(lightPosLocation, lightPos.x, lightPos.y, lightPos.z);     //设置光源位置
+
+	int lightColorLocation = glGetUniformLocation(shaderProgram, "lightColor");
+	glUniform3f(lightColorLocation, lightColor.x, lightColor.y, lightColor.z);     //设置光源颜色
+
 	int viewLocation = glGetUniformLocation(shaderProgram, "view");
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
 
@@ -270,4 +288,13 @@ void Render::drawScene(
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 	}
+	glm::mat4 lightModel = glm::mat4(1.0f);
+
+	lightModel = glm::translate(lightModel, lightPos);
+
+	lightModel = glm::scale(lightModel, glm::vec3(0.2f)); // 将光源缩小为原来的20%
+
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(lightModel));    // 设置光源的模型矩阵
+
+	glDrawArrays(GL_TRIANGLES, 0, 36);    // 绘制光源（使用相同的顶点数据，但可以使用不同的着色器来渲染为一个小的立方体）
 }
