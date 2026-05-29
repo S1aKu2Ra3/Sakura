@@ -127,9 +127,11 @@ const char* fragmentShaderSource =               //片段着色器源码
 "vec3 ambient = 0.1 * lightColor;\n"
 "vec3 diffuse = diff * vec3(lightColor);\n"
 "float specularStrength = 0.5;\n"
+"float shininess = 64.0;\n"
+
 "vec3 viewDir = normalize(vec3(viewPos) - FragPos);\n"
-"vec3 reflectDir = reflect(-lightDir, norm);\n"
-"float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);\n"    //高光锐利度
+"vec3 halfwayDir = normalize(lightDir + viewDir);\n"
+"float spec = pow(max(dot(norm, halfwayDir), 0.0), shininess);\n"    //高光集中度
 "vec3 specular = specularStrength * spec * lightColor;\n"
 "vec4 texColor = texture(ourTexture, TexCoord);\n"
 "vec3 baseColor = mix(texColor.rgb, texColor.rgb * ourColor , mixValue);\n"
