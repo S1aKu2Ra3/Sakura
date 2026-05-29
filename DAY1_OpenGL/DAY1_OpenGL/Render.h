@@ -7,7 +7,8 @@ public:
 	void clear(float r, float g, float b);
 	void drawScene(
 		float aspectRatio,
-		const glm::mat4& view
+		const glm::mat4& view,
+		const glm::vec3& viewPos
 	);
 
 };

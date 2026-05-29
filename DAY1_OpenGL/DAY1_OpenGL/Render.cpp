@@ -113,6 +113,7 @@ const char* fragmentShaderSource =               //片段着色器源码
 "uniform vec3 lightPos;\n"
 "uniform vec3 lightColor;\n"
 "uniform bool isLight;\n"
+"uniform vec3 viewPos;\n"
 "void main()\n"
 "{\n"
 "if(isLight)\n"
@@ -125,9 +126,14 @@ const char* fragmentShaderSource =               //片段着色器源码
 "float diff = max(dot(norm, lightDir), 0.0);\n"
 "vec3 ambient = 0.1 * lightColor;\n"
 "vec3 diffuse = diff * vec3(lightColor);\n"
+"float specularStrength = 0.5;\n"
+"vec3 viewDir = normalize(vec3(viewPos) - FragPos);\n"
+"vec3 reflectDir = reflect(-lightDir, norm);\n"
+"float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);\n"    //高光锐利度
+"vec3 specular = specularStrength * spec * lightColor;\n"
 "vec4 texColor = texture(ourTexture, TexCoord);\n"
 "vec3 baseColor = mix(texColor.rgb, texColor.rgb * ourColor , mixValue);\n"
-"vec3 result = (ambient + diffuse) * baseColor;\n"
+"vec3 result = (ambient + diffuse + specular) * baseColor;\n"
 "FragColor = vec4(result , 1.0);\n"      
 "}";
 
@@ -244,7 +250,8 @@ void Render::clear(float r, float g, float b)  //清屏颜色设置
 
 void Render::drawScene(
 	float aspectRatio,
-	const glm::mat4& view
+	const glm::mat4& view,
+	const glm::vec3& viewPos
 )
 
 {
@@ -258,6 +265,9 @@ void Render::drawScene(
 
 	int lightColorLocation = glGetUniformLocation(shaderProgram, "lightColor");
 	glUniform3f(lightColorLocation, lightColor.x, lightColor.y, lightColor.z);     //设置光源颜色
+
+	int viewPosLocation = glGetUniformLocation(shaderProgram, "viewPos");
+	glUniform3f(viewPosLocation, viewPos.x, viewPos.y, viewPos.z);     //设置观察位置
 
 	int viewLocation = glGetUniformLocation(shaderProgram, "view");
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));

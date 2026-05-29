@@ -23,7 +23,7 @@ int main()
 		render.clear(0.2f, 0.3f, 0.3f);    //清屏
 
 	
-		render.drawScene(window.getAspectRatio(), camera.getViewMatrix());   //定义相机位置和方向
+		render.drawScene(window.getAspectRatio(), camera.getViewMatrix() , camera.getPosition());   //定义相机位置和方向
 		
 		window.swapBuffers();         //交换缓冲区
 
