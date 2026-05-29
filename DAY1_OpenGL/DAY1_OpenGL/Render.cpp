@@ -112,12 +112,18 @@ const char* fragmentShaderSource =               //片段着色器源码
 "uniform float mixValue;\n"
 "uniform vec3 lightPos;\n"
 "uniform vec3 lightColor;\n"
+"uniform bool isLight;\n"
 "void main()\n"
 "{\n"
+"if(isLight)\n"
+"{\n"
+"FragColor = vec4(lightColor, 1.0);\n"
+"return;\n"
+"}\n"
 "vec3 norm = normalize(Normal);\n"
 "vec3 lightDir = normalize(vec3(lightPos) - FragPos);\n"
 "float diff = max(dot(norm, lightDir), 0.0);\n"
-"vec3 ambient = 0.1 * lightColor;"
+"vec3 ambient = 0.1 * lightColor;\n"
 "vec3 diffuse = diff * vec3(lightColor);\n"
 "vec4 texColor = texture(ourTexture, TexCoord);\n"
 "vec3 baseColor = mix(texColor.rgb, texColor.rgb * ourColor , mixValue);\n"
@@ -256,6 +262,9 @@ void Render::drawScene(
 	int viewLocation = glGetUniformLocation(shaderProgram, "view");
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
 
+	int isLightLocation = glGetUniformLocation(shaderProgram, "isLight");
+
+
 	glm::mat4 projection = glm::mat4(1.0f);
 
 	projection = glm::perspective(
@@ -279,6 +288,8 @@ void Render::drawScene(
 	glUniform1f(mixlocation, mixvalue);     //设置uniform变量值
 	glBindVertexArray(VAO);                //绑定顶点数据
 	glBindTexture(GL_TEXTURE_2D, texture);        //绑定纹理对象到目标
+	glUniform1i(isLightLocation, false);     //设置isLight为false，渲染普通物体
+
 	for (int i = 0; i < 10; i++)
 	{
 		glm::mat4 model = glm::mat4(1.0f);
@@ -288,6 +299,8 @@ void Render::drawScene(
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 	}
+	glUniform1i(isLightLocation, true);     //设置isLight为true，渲染光源
+
 	glm::mat4 lightModel = glm::mat4(1.0f);
 
 	lightModel = glm::translate(lightModel, lightPos);
