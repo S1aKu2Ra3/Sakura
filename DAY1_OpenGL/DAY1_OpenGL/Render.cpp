@@ -149,7 +149,7 @@ unsigned int texture;    //纹理对象
 void Render::initTriangle()
 {
 
-	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_DEPTH_TEST);
 
 	unsigned int vertexShader;             //顶点（用后删除）
 	unsigned int fragmentShader;           //像素
