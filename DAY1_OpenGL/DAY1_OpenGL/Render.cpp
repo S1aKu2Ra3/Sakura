@@ -114,11 +114,29 @@ const char* fragmentShaderSource =               //片段着色器源码
 "uniform vec3 lightColor;\n"
 "uniform bool isLight;\n"
 "uniform vec3 viewPos;\n"
+"uniform int renderMode;\n"
 "void main()\n"
 "{\n"
 "if(isLight)\n"
 "{\n"
 "FragColor = vec4(lightColor, 1.0);\n"
+"return;\n"
+"}\n"
+"if(renderMode==2)\n"
+"{\n"
+" vec3 debugNormal = normalize(Normal);\n"
+" FragColor = vec4(debugNormal * 0.5 + 0.5, 1.0);\n"
+"return;\n"
+"}\n"
+"if(renderMode==3)\n"
+"{\n"
+"FragColor = vec4(TexCoord , 0.0 , 1.0);\n"
+"return;\n"
+"}\n"
+"if(renderMode==4)\n"
+"{\n"
+"vec3 debugPos = FragPos * 0.1 + 0.5;\n"
+"FragColor = vec4(debugPos , 1.0);\n"
 "return;\n"
 "}\n"
 "vec3 norm = normalize(Normal);\n"
@@ -149,7 +167,7 @@ unsigned int texture;    //纹理对象
 void Render::initTriangle()
 {
 
-	//glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
 
 	unsigned int vertexShader;             //顶点（用后删除）
 	unsigned int fragmentShader;           //像素
@@ -249,6 +267,15 @@ void Render::clear(float r, float g, float b)  //清屏颜色设置
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
+void Render::setRenderMode(int mode)     //设置渲染模式
+{
+	renderMode = mode;
+}
+
+int Render::getRenderMode() const     //获取渲染模式
+{
+	return renderMode;
+}
 
 void Render::drawScene(
 	float aspectRatio,
@@ -275,6 +302,8 @@ void Render::drawScene(
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
 
 	int isLightLocation = glGetUniformLocation(shaderProgram, "isLight");
+	int renderModeLocation = glGetUniformLocation(shaderProgram, "renderMode");
+	glUniform1i(renderModeLocation, renderMode);     //设置渲染模式
 
 
 	glm::mat4 projection = glm::mat4(1.0f);

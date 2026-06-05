@@ -20,6 +20,23 @@ int main()
 		
 		camera.processInput(window, deltaTime);   //处理相机输入
 
+		if (window.isKeyPressed(GLFW_KEY_1))
+		{
+			render.setRenderMode(1);     //按下1键，设置为渲染模式1
+		}
+		if (window.isKeyPressed(GLFW_KEY_2))
+		{
+			render.setRenderMode(2);     //按下2键，设置为渲染模式2
+		}
+		if (window.isKeyPressed(GLFW_KEY_3))
+		{
+			render.setRenderMode(3);     //按下3键，设置为渲染模式3
+		}
+		if (window.isKeyPressed(GLFW_KEY_4))
+		{
+			render.setRenderMode(4);     //按下4键，设置为渲染模式4
+		}
+
 		render.clear(0.2f, 0.3f, 0.3f);    //清屏
 
 	
