@@ -108,7 +108,7 @@ const char* fragmentShaderSource =               //片段着色器源码
 "in vec2 TexCoord;\n"
 "in vec3 Normal;\n"
 "in vec3 FragPos;\n"
-"uniform sampler2D ourTexture;\n"
+"uniform sampler2D diffuseMap;\n"
 "uniform float mixValue;\n"
 "uniform float ambientStrength;\n"
 "uniform float specularStrength;\n"
@@ -161,7 +161,7 @@ const char* fragmentShaderSource =               //片段着色器源码
 "FragColor = vec4(vec3(spec),1.0);\n"
 "return;\n"
 "}\n"
-"vec4 texColor = texture(ourTexture, TexCoord);\n"
+"vec4 texColor = texture(diffuseMap, TexCoord);\n"
 "vec3 baseColor = mix(texColor.rgb, texColor.rgb * ourColor , mixValue);\n"
 "vec3 result = (ambient + diffuse + specular) * baseColor;\n"
 "FragColor = vec4(result , 1.0);\n"      
@@ -172,7 +172,7 @@ unsigned int shaderProgram;     //完整（全局函数）
 unsigned int VBO;    //无符号数（OpenGL多为编号）     存储数据
 unsigned int VAO;    //解释数据，记录数据格式
 unsigned int EBO;    //索引数据
-unsigned int texture;    //纹理对象
+unsigned int diffuseTexture;    //纹理对象
 
 void Render::initTriangle()
 {
@@ -226,7 +226,7 @@ void Render::initTriangle()
 	glGenVertexArrays(1, &VAO);        //创建解释并保留地址
 	glGenBuffers(1, &VBO);            //创建缓存并保留地址
 	glGenBuffers(1, &EBO);            //创建索引缓存并保留地址
-	glGenTextures(1, &texture);        //创建纹理对象并保留地址
+	glGenTextures(1, &diffuseTexture);        //创建纹理对象并保留地址
 
 	glBindVertexArray(VAO);           //绑定
 
@@ -234,7 +234,7 @@ void Render::initTriangle()
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);          //绑定缓冲区对象到目标
 
-	glBindTexture(GL_TEXTURE_2D, texture);        //绑定纹理对象到目标
+	glBindTexture(GL_TEXTURE_2D, diffuseTexture);        //绑定纹理对象到目标
 
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);      //写入数据  （写入区域，写入大小，写入对象，相关操作）
@@ -281,6 +281,20 @@ void Render::setRenderMode(int mode)     //设置渲染模式
 {
 	renderMode = mode;
 }
+void Render::setAmbientStrength(float value)     //设置环境光强度
+{
+	ambientStrength = value;
+}
+
+void Render::setSpecularStrength(float value)     //设置镜面反射强度
+{
+	specularStrength = value;
+}
+
+void Render::setShininess(float value)     //设置高光集中度
+{
+	shininess = value;
+}
 
 int Render::getRenderMode() const     //获取渲染模式
 {
@@ -296,6 +310,9 @@ void Render::drawScene(
 {
 	glUseProgram(shaderProgram);  
 
+	int diffuseMapLocation = glGetUniformLocation(shaderProgram, "diffuseMap");
+	glUniform1f(diffuseMapLocation, 0);
+
 	glm::vec3 lightPos(1.2f, 1.0f, 2.0f);     //光源位置
 	glm::vec3 lightColor(1.0f, 1.0f, 1.0f);     //光源颜色
 
@@ -306,13 +323,13 @@ void Render::drawScene(
 	glUniform3f(lightColorLocation, lightColor.x, lightColor.y, lightColor.z);     //设置光源颜色
 
 	int ambientStrengthLocation = glGetUniformLocation(shaderProgram, "ambientStrength");
-	glUniform1f(ambientStrengthLocation, 0.1f);     //设置环境光强度
+	glUniform1f(ambientStrengthLocation, ambientStrength);     //设置环境光强度
 
 	int specularStrengthLocation = glGetUniformLocation(shaderProgram, "specularStrength");
-	glUniform1f(specularStrengthLocation, 0.5f);     //设置镜面反射强度
+	glUniform1f(specularStrengthLocation, specularStrength);     //设置镜面反射强度
 
 	int shininessLocation = glGetUniformLocation(shaderProgram, "shininess");
-	glUniform1f(shininessLocation, 64.0f);     //设置高光集中度
+	glUniform1f(shininessLocation, shininess);     //设置高光集中度
 
 	int viewPosLocation = glGetUniformLocation(shaderProgram, "viewPos");
 	glUniform3f(viewPosLocation, viewPos.x, viewPos.y, viewPos.z);     //设置观察位置
@@ -349,7 +366,8 @@ void Render::drawScene(
 
 	glUniform1f(mixlocation, mixvalue);     //设置uniform变量值
 	glBindVertexArray(VAO);                //绑定顶点数据
-	glBindTexture(GL_TEXTURE_2D, texture);        //绑定纹理对象到目标
+	glActiveTexture(GL_TEXTURE0);        //激活纹理单元0
+	glBindTexture(GL_TEXTURE_2D, diffuseTexture);        //绑定纹理对象到目标
 	glUniform1i(isLightLocation, false);     //设置isLight为false，渲染普通物体
 
 	for (int i = 0; i < 10; i++)
