@@ -110,6 +110,9 @@ const char* fragmentShaderSource =               //片段着色器源码
 "in vec3 FragPos;\n"
 "uniform sampler2D ourTexture;\n"
 "uniform float mixValue;\n"
+"uniform float ambientStrength;\n"
+"uniform float specularStrength;\n"
+"uniform float shininess;\n"
 "uniform vec3 lightPos;\n"
 "uniform vec3 lightColor;\n"
 "uniform bool isLight;\n"
@@ -147,10 +150,8 @@ const char* fragmentShaderSource =               //片段着色器源码
 " FragColor = vec4(vec3(diff) , 1.0);\n"
 "return;\n"
 "}\n"
-"vec3 ambient = 0.1 * lightColor;\n"
+"vec3 ambient = ambientStrength * lightColor;\n"
 "vec3 diffuse = diff * vec3(lightColor);\n"
-"float specularStrength = 0.5;\n"
-"float shininess = 64.0;\n"
 "vec3 viewDir = normalize(vec3(viewPos) - FragPos);\n"
 "vec3 halfwayDir = normalize(lightDir + viewDir);\n"
 "float spec = pow(max(dot(norm, halfwayDir), 0.0), shininess);\n"    //高光集中度
@@ -304,6 +305,15 @@ void Render::drawScene(
 	int lightColorLocation = glGetUniformLocation(shaderProgram, "lightColor");
 	glUniform3f(lightColorLocation, lightColor.x, lightColor.y, lightColor.z);     //设置光源颜色
 
+	int ambientStrengthLocation = glGetUniformLocation(shaderProgram, "ambientStrength");
+	glUniform1f(ambientStrengthLocation, 0.1f);     //设置环境光强度
+
+	int specularStrengthLocation = glGetUniformLocation(shaderProgram, "specularStrength");
+	glUniform1f(specularStrengthLocation, 0.5f);     //设置镜面反射强度
+
+	int shininessLocation = glGetUniformLocation(shaderProgram, "shininess");
+	glUniform1f(shininessLocation, 64.0f);     //设置高光集中度
+
 	int viewPosLocation = glGetUniformLocation(shaderProgram, "viewPos");
 	glUniform3f(viewPosLocation, viewPos.x, viewPos.y, viewPos.z);     //设置观察位置
 
@@ -326,6 +336,8 @@ void Render::drawScene(
 
 	int projectionLocation = glGetUniformLocation(shaderProgram, "projection");
 	glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
+
+
 
 	int modelLocation = glGetUniformLocation(shaderProgram, "model");
 	
