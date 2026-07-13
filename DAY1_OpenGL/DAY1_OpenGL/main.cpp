@@ -44,6 +44,10 @@ int main()
 		{
 			render.setRenderMode(6);     //按下6键，设置为渲染模式6
 		}
+		if (window.isKeyPressed(GLFW_KEY_7))
+		{
+			render.setRenderMode(7);     //按下7键，设置为渲染模式7
+		}
 
 		render.clear(0.2f, 0.3f, 0.3f);    //清屏
 

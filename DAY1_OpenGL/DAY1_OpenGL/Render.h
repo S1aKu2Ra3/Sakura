@@ -11,8 +11,15 @@ public:
 		const glm::vec3& viewPos
 	);
 	void setAmbientStrength(float value);
+	
+	
 	void setSpecularStrength(float value);
+
+
 	void setShininess(float value);
+
+	
+	void setEmissionStrength(float value);
 
 		
 	void setRenderMode(int mode);
@@ -22,4 +29,7 @@ private:
 	float ambientStrength = 0.1f;     //环境光强度
 	float specularStrength = 0.5f;     //镜面反射强度
 	float shininess = 64.0f;     //高光集中度
+	float emissionStrengh = 0.2f;     //发光强度
+
+	unsigned int loadTexture(const char* path);
 };

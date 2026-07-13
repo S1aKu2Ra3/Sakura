@@ -110,10 +110,12 @@ const char* fragmentShaderSource =               //片段着色器源码
 "in vec3 FragPos;\n"
 "uniform sampler2D diffuseMap;\n"
 "uniform sampler2D specularMap;\n"
+"uniform sampler2D emissionMap;\n"
 "uniform float mixValue;\n"
 "uniform float ambientStrength;\n"
 "uniform float specularStrength;\n"
 "uniform float shininess;\n"
+"uniform float emissionStrengh;\n"
 "uniform vec3 lightPos;\n"
 "uniform vec3 lightColor;\n"
 "uniform bool isLight;\n"
@@ -166,17 +168,88 @@ const char* fragmentShaderSource =               //片段着色器源码
 "}\n"
 "vec4 texColor = texture(diffuseMap, TexCoord);\n"
 "vec3 baseColor = mix(texColor.rgb, texColor.rgb * ourColor , mixValue);\n"
-"vec3 result = (ambient + diffuse + specular) * baseColor;\n"
+"vec3 emission = texture(emissionMap, TexCoord).rgb * emissionStrengh;\n"
+"if(renderMode==7)\n"
+"{\n"
+" FragColor = vec4(emission, 1.0);\n"
+" return;\n"
+"}\n"
+"vec3 result = (ambient + diffuse + specular) * baseColor + emission;\n"
 "FragColor = vec4(result , 1.0);\n"      
 "}";
 
 
-unsigned int shaderProgram;     //完整（全局函数）
+unsigned int shaderProgram;     //完整（全局函数）	
 unsigned int VBO;    //无符号数（OpenGL多为编号）     存储数据
 unsigned int VAO;    //解释数据，记录数据格式
 unsigned int EBO;    //索引数据
 unsigned int diffuseTexture;    //纹理对象
 unsigned int specularTexture;   //镜面纹理对象
+unsigned int emissionTexture;  //发光纹理对象
+
+unsigned int  Render::loadTexture(const char* path)
+{
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	int width;
+	int height;
+	int nrChannels;
+
+	unsigned char* data = stbi_load(
+		path,
+		&width,
+		&height,
+		&nrChannels,
+		0
+	);
+
+	if (data)
+	{
+		GLenum format;
+
+		if (nrChannels == 1)
+		{
+			format = GL_RED;
+		}
+		else if (nrChannels == 3)
+		{
+			format = GL_RGB;
+		}
+		else if (nrChannels == 4)
+		{
+			format = GL_RGBA;
+		}
+		glTexImage2D(
+			GL_TEXTURE_2D,
+			0,
+			format,
+			width,
+			height,
+			0,
+			format,
+			GL_UNSIGNED_BYTE,
+			data
+		);
+
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout
+			<< "Failed to load texture: "
+			<< path
+			<< std::endl;
+	}
+	stbi_image_free(data);
+	return textureID;
+}
 
 void Render::initTriangle()
 {
@@ -230,17 +303,13 @@ void Render::initTriangle()
 	glGenVertexArrays(1, &VAO);        //创建解释并保留地址
 	glGenBuffers(1, &VBO);            //创建缓存并保留地址
 	glGenBuffers(1, &EBO);            //创建索引缓存并保留地址
-	glGenTextures(1, &diffuseTexture);        //创建纹理对象并保留地址
-	glGenTextures(1, &specularTexture);   //创建镜面纹理对象并保留地址
+
 
 	glBindVertexArray(VAO);           //绑定
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);        //绑定索引缓冲区对象到目标
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);          //绑定缓冲区对象到目标
-
-	glBindTexture(GL_TEXTURE_2D, diffuseTexture);        //绑定纹理对象到目标
-
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);      //写入数据  （写入区域，写入大小，写入对象，相关操作）
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);      //写入数据  （写入区域，写入大小，写入对象，相关操作）
@@ -266,28 +335,12 @@ void Render::initTriangle()
 
 	stbi_set_flip_vertically_on_load(true);
 
+	diffuseTexture = loadTexture("container.jpg");
+	specularTexture = loadTexture("container_specular.jpg");
+	emissionTexture = loadTexture("container_emission.jpg");
+
 	unsigned char* data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
 
-	if (data)
-	{	
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	stbi_image_free(data);
-	glBindTexture(GL_TEXTURE_2D, specularTexture);        //绑定镜面纹理对象到目标)
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	data = stbi_load("container_specular.jpg", &width, &height, &nrChannels, 0);
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	stbi_image_free(data);
 }
 
 void Render::clear(float r, float g, float b)  //清屏颜色设置
@@ -299,6 +352,10 @@ void Render::clear(float r, float g, float b)  //清屏颜色设置
 void Render::setRenderMode(int mode)     //设置渲染模式
 {
 	renderMode = mode;
+}
+void Render::setEmissionStrength(float value)     //设置发光强度
+{
+	emissionStrengh = value;
 }
 void Render::setAmbientStrength(float value)     //设置环境光强度
 {
@@ -332,11 +389,17 @@ void Render::drawScene(
 	int diffuseMapLocation = glGetUniformLocation(shaderProgram, "diffuseMap");
 	glUniform1i(diffuseMapLocation, 0);
 
+	int emissionStrengthLocation = glGetUniformLocation(shaderProgram, "emissionStrengh");
+	glUniform1f(emissionStrengthLocation, emissionStrengh);     //设置发光强度)
+
 	glm::vec3 lightPos(1.2f, 1.0f, 2.0f);     //光源位置
 	glm::vec3 lightColor(1.0f, 1.0f, 1.0f);     //光源颜色
 
 	int lightPosLocation = glGetUniformLocation(shaderProgram, "lightPos");
 	glUniform3f(lightPosLocation, lightPos.x, lightPos.y, lightPos.z);     //设置光源位置
+
+	int emissionMapLocation = glGetUniformLocation(shaderProgram, "emissionMap");
+	glUniform1i(emissionMapLocation, 2);     //设置发光纹理单元为2
 
 	int lightColorLocation = glGetUniformLocation(shaderProgram, "lightColor");
 	glUniform3f(lightColorLocation, lightColor.x, lightColor.y, lightColor.z);     //设置光源颜色
@@ -357,6 +420,7 @@ void Render::drawScene(
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
 
 	int isLightLocation = glGetUniformLocation(shaderProgram, "isLight");
+
 	int renderModeLocation = glGetUniformLocation(shaderProgram, "renderMode");
 	glUniform1i(renderModeLocation, renderMode);     //设置渲染模式
 
@@ -389,9 +453,11 @@ void Render::drawScene(
 	glUniform1f(mixlocation, mixvalue);     //设置uniform变量值
 	glBindVertexArray(VAO);                //绑定顶点数据
 	glActiveTexture(GL_TEXTURE0);        //激活纹理单元0
-	glBindTexture(GL_TEXTURE_2D, diffuseTexture);        //绑定纹理对象到目标
+	glBindTexture(GL_TEXTURE_2D, diffuseTexture);        //绑定漫反射纹理对象到目标
 	glActiveTexture(GL_TEXTURE1);        //激活纹理单元1
 	glBindTexture(GL_TEXTURE_2D, specularTexture);        //绑定镜面纹理对象到目标
+	glActiveTexture(GL_TEXTURE2);        //激活纹理单元2
+	glBindTexture(GL_TEXTURE_2D, emissionTexture);        //绑定发光纹理对象到目标
 	glUniform1i(isLightLocation, false);     //设置isLight为false，渲染普通物体
 
 	for (int i = 0; i < 10; i++)
