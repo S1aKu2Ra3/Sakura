@@ -109,6 +109,7 @@ const char* fragmentShaderSource =               //片段着色器源码
 "in vec3 Normal;\n"
 "in vec3 FragPos;\n"
 "uniform sampler2D diffuseMap;\n"
+"uniform sampler2D specularMap;\n"
 "uniform float mixValue;\n"
 "uniform float ambientStrength;\n"
 "uniform float specularStrength;\n"
@@ -155,10 +156,12 @@ const char* fragmentShaderSource =               //片段着色器源码
 "vec3 viewDir = normalize(vec3(viewPos) - FragPos);\n"
 "vec3 halfwayDir = normalize(lightDir + viewDir);\n"
 "float spec = pow(max(dot(norm, halfwayDir), 0.0), shininess);\n"    //高光集中度
-"vec3 specular = specularStrength * spec * lightColor;\n"
+"float specularMapValue = texture(specularMap , TexCoord).r;\n"
+"float finalSpec = spec * specularMapValue;\n"
+"vec3 specular = specularStrength * finalSpec * lightColor;\n"
 "if(renderMode==6)\n"
 "{\n"
-"FragColor = vec4(vec3(spec),1.0);\n"
+"FragColor = vec4(vec3(finalSpec),1.0);\n"
 "return;\n"
 "}\n"
 "vec4 texColor = texture(diffuseMap, TexCoord);\n"
@@ -173,6 +176,7 @@ unsigned int VBO;    //无符号数（OpenGL多为编号）     存储数据
 unsigned int VAO;    //解释数据，记录数据格式
 unsigned int EBO;    //索引数据
 unsigned int diffuseTexture;    //纹理对象
+unsigned int specularTexture;   //镜面纹理对象
 
 void Render::initTriangle()
 {
@@ -227,6 +231,7 @@ void Render::initTriangle()
 	glGenBuffers(1, &VBO);            //创建缓存并保留地址
 	glGenBuffers(1, &EBO);            //创建索引缓存并保留地址
 	glGenTextures(1, &diffuseTexture);        //创建纹理对象并保留地址
+	glGenTextures(1, &specularTexture);   //创建镜面纹理对象并保留地址
 
 	glBindVertexArray(VAO);           //绑定
 
@@ -265,6 +270,20 @@ void Render::initTriangle()
 
 	if (data)
 	{	
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	stbi_image_free(data);
+	glBindTexture(GL_TEXTURE_2D, specularTexture);        //绑定镜面纹理对象到目标)
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	data = stbi_load("container_specular.jpg", &width, &height, &nrChannels, 0);
+	if (data)
+	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
@@ -311,7 +330,7 @@ void Render::drawScene(
 	glUseProgram(shaderProgram);  
 
 	int diffuseMapLocation = glGetUniformLocation(shaderProgram, "diffuseMap");
-	glUniform1f(diffuseMapLocation, 0);
+	glUniform1i(diffuseMapLocation, 0);
 
 	glm::vec3 lightPos(1.2f, 1.0f, 2.0f);     //光源位置
 	glm::vec3 lightColor(1.0f, 1.0f, 1.0f);     //光源颜色
@@ -341,6 +360,9 @@ void Render::drawScene(
 	int renderModeLocation = glGetUniformLocation(shaderProgram, "renderMode");
 	glUniform1i(renderModeLocation, renderMode);     //设置渲染模式
 
+	int specularMapLocation = glGetUniformLocation(shaderProgram, "specularMap");
+	glUniform1i(specularMapLocation, 1);     //设置镜面纹理单元为1
+
 
 	glm::mat4 projection = glm::mat4(1.0f);
 
@@ -368,6 +390,8 @@ void Render::drawScene(
 	glBindVertexArray(VAO);                //绑定顶点数据
 	glActiveTexture(GL_TEXTURE0);        //激活纹理单元0
 	glBindTexture(GL_TEXTURE_2D, diffuseTexture);        //绑定纹理对象到目标
+	glActiveTexture(GL_TEXTURE1);        //激活纹理单元1
+	glBindTexture(GL_TEXTURE_2D, specularTexture);        //绑定镜面纹理对象到目标
 	glUniform1i(isLightLocation, false);     //设置isLight为false，渲染普通物体
 
 	for (int i = 0; i < 10; i++)
