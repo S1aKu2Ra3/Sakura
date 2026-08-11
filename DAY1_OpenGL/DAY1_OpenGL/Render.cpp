@@ -115,7 +115,7 @@ const char* fragmentShaderSource =               //片段着色器源码
 "uniform float ambientStrength;\n"
 "uniform float specularStrength;\n"
 "uniform float shininess;\n"
-"uniform float emissionStrengh;\n"
+"uniform float emissionStrength;\n"
 "uniform vec3 lightPos;\n"
 "uniform vec3 lightColor;\n"
 "uniform bool isLight;\n"
@@ -168,7 +168,7 @@ const char* fragmentShaderSource =               //片段着色器源码
 "}\n"
 "vec4 texColor = texture(diffuseMap, TexCoord);\n"
 "vec3 baseColor = mix(texColor.rgb, texColor.rgb * ourColor , mixValue);\n"
-"vec3 emission = texture(emissionMap, TexCoord).rgb * emissionStrengh;\n"
+"vec3 emission = texture(emissionMap, TexCoord).rgb * emissionStrength;\n"
 "if(renderMode==7)\n"
 "{\n"
 " FragColor = vec4(emission, 1.0);\n"
@@ -255,6 +255,16 @@ void Render::initTriangle()
 {
 
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_MULTISAMPLE);
+
+	int samepleBuffers = 0;
+	int samples = 0;
+
+	glGetIntegerv(GL_SAMPLE_BUFFERS, &samepleBuffers);
+	glGetIntegerv(GL_SAMPLES, &samples);
+
+	std::cout << "Sample Buffers: " << samepleBuffers << std::endl;
+	std::cout << "Samples: " << samples << std::endl;
 
 	unsigned int vertexShader;             //顶点（用后删除）
 	unsigned int fragmentShader;           //像素
@@ -355,7 +365,7 @@ void Render::setRenderMode(int mode)     //设置渲染模式
 }
 void Render::setEmissionStrength(float value)     //设置发光强度
 {
-	emissionStrengh = value;
+	emissionStrength = value;
 }
 void Render::setAmbientStrength(float value)     //设置环境光强度
 {
@@ -389,8 +399,8 @@ void Render::drawScene(
 	int diffuseMapLocation = glGetUniformLocation(shaderProgram, "diffuseMap");
 	glUniform1i(diffuseMapLocation, 0);
 
-	int emissionStrengthLocation = glGetUniformLocation(shaderProgram, "emissionStrengh");
-	glUniform1f(emissionStrengthLocation, emissionStrengh);     //设置发光强度)
+	int emissionStrengthLocation = glGetUniformLocation(shaderProgram, "emissionStrength");
+	glUniform1f(emissionStrengthLocation, emissionStrength);     //设置发光强度)
 
 	glm::vec3 lightPos(1.2f, 1.0f, 2.0f);     //光源位置
 	glm::vec3 lightColor(1.0f, 1.0f, 1.0f);     //光源颜色

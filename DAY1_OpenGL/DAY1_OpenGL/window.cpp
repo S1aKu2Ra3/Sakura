@@ -16,6 +16,7 @@ Window::Window(int width, int height, const char* title)
 	{
 		std::cout << "Failed to intialzie GLFW" << std::endl;
 	}
+	glfwWindowHint(GLFW_SAMPLES, 4);
 	window = glfwCreateWindow(width, height, title, nullptr, nullptr);
 	if (!window)
 	{
