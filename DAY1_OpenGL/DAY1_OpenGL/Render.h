@@ -24,6 +24,16 @@ public:
 		
 	void setRenderMode(int mode);
 	int getRenderMode() const;
+
+	void cleanup();     //清理资源
+
+	void beginScenePass();  // 开始向场景 FBO 绘制
+	void endScenePass();    // 切回窗口默认帧缓冲
+
+	void drawScreen();  // 绘制屏幕四边形，使用场景 FBO 的颜色纹理
+
+	void resizeSceneTarget(int width, int height);
+
 private:
 	int renderMode = 1;     //默认渲染模式
 	float ambientStrength = 0.1f;     //环境光强度

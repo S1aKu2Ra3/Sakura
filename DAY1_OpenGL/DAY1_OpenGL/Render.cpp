@@ -178,6 +178,28 @@ const char* fragmentShaderSource =               //片段着色器源码
 "FragColor = vec4(result , 1.0);\n"      
 "}";
 
+const char* screenVertexShaderSource =
+"#version 330 core\n"
+"layout (location = 0) in vec2 aPos;\n"
+"layout (location = 1) in vec2 aTexCoord;\n"
+"out vec2 TexCoord;\n"
+"void main()\n"
+"{\n"
+"    gl_Position = vec4(aPos, 0.0, 1.0);\n"
+"    TexCoord = aTexCoord;\n"
+"}\n";
+
+const char* screenFragmentShaderSource =
+"#version 330 core\n"
+"in vec2 TexCoord;\n"
+"out vec4 FragColor;\n"
+"uniform sampler2D screenTexture;\n"
+"void main()\n"
+"{\n"
+"    vec3 sceneColor = texture(screenTexture, TexCoord).rgb;\n"
+"    FragColor = vec4(sceneColor, 1.0);\n"
+"}\n";
+
 
 unsigned int shaderProgram;     //完整（全局函数）	
 unsigned int VBO;    //无符号数（OpenGL多为编号）     存储数据
@@ -186,6 +208,27 @@ unsigned int EBO;    //索引数据
 unsigned int diffuseTexture;    //纹理对象
 unsigned int specularTexture;   //镜面纹理对象
 unsigned int emissionTexture;  //发光纹理对象
+unsigned int sceneFBO;    //帧缓冲对象
+unsigned int sceneColorTexture;    //帧缓冲纹理对象
+unsigned int sceneDepthRBO;    //帧缓冲渲染缓冲对象
+unsigned int screenVAO = 0;
+unsigned int screenVBO = 0;
+unsigned int screenShaderProgram = 0;
+int framebufferWidth = 0;
+int framebufferHeight = 0;
+
+
+float screenVertices[] =
+{
+	// 位置 x,y       UV u,v
+	-1.0f,  1.0f,    0.0f, 1.0f,  // 左上
+	-1.0f, -1.0f,    0.0f, 0.0f,  // 左下
+	 1.0f, -1.0f,    1.0f, 0.0f,  // 右下
+
+	-1.0f,  1.0f,    0.0f, 1.0f,  // 左上
+	 1.0f, -1.0f,    1.0f, 0.0f,  // 右下
+	 1.0f,  1.0f,    1.0f, 1.0f   // 右上
+};
 
 unsigned int  Render::loadTexture(const char* path)
 {
@@ -251,6 +294,8 @@ unsigned int  Render::loadTexture(const char* path)
 	return textureID;
 }
 
+
+
 void Render::initTriangle()
 {
 
@@ -265,6 +310,93 @@ void Render::initTriangle()
 
 	std::cout << "Sample Buffers: " << samepleBuffers << std::endl;
 	std::cout << "Samples: " << samples << std::endl;
+
+	glGenFramebuffers(1, &sceneFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
+
+	GLint currentFramebuffer = -1;
+	glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &currentFramebuffer);
+	std::cout << "Custom framebuffer: " << currentFramebuffer << '\n';
+	glfwGetFramebufferSize(
+		glfwGetCurrentContext(), &framebufferWidth, &framebufferHeight
+	);
+
+	std::cout << "Initial FBO size: "
+		<< framebufferWidth << " x " << framebufferHeight << '\n';
+
+	glGenTextures(1, &sceneColorTexture);
+	glBindTexture(GL_TEXTURE_2D, sceneColorTexture);
+
+	glTexImage2D(
+		GL_TEXTURE_2D, 0, GL_RGB8,
+		framebufferWidth, framebufferHeight, 0,
+		GL_RGB, GL_UNSIGNED_BYTE, nullptr
+	); // 分配颜色存储空间，不从图片上传像素
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glFramebufferTexture2D(
+		GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D, sceneColorTexture, 0
+	); // 把这张纹理连接为当前 FBO 的第一个颜色附件
+
+	glGenRenderbuffers(1, &sceneDepthRBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, sceneDepthRBO);
+
+	glRenderbufferStorage(
+		GL_RENDERBUFFER, GL_DEPTH_COMPONENT24,
+		framebufferWidth, framebufferHeight
+	); // 分配与颜色纹理尺寸一致的深度存储
+
+	glFramebufferRenderbuffer(
+		GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+		GL_RENDERBUFFER, sceneDepthRBO
+	); // 把 RBO 连接到当前 FBO 的深度附件位置
+
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << "Scene FBO: complete\n";
+	}
+	else
+	{
+		std::cout << "Scene FBO: incomplete\n";
+	}
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glGenVertexArrays(1, &screenVAO);
+	glGenBuffers(1, &screenVBO);
+
+	glBindVertexArray(screenVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, screenVBO);
+
+	glBufferData(
+		GL_ARRAY_BUFFER, sizeof(screenVertices),
+		screenVertices, GL_STATIC_DRAW
+	);
+
+	// location 0：二维位置
+	glVertexAttribPointer(
+		0, 2, GL_FLOAT, GL_FALSE,
+		4 * sizeof(float), (void*)0
+	);
+	glEnableVertexAttribArray(0);
+
+	// location 1：二维 UV
+	glVertexAttribPointer(
+		1, 2, GL_FLOAT, GL_FALSE,
+		4 * sizeof(float), (void*)(2 * sizeof(float))
+	);
+	glEnableVertexAttribArray(1);
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	unsigned int vertexShader;             //顶点（用后删除）
 	unsigned int fragmentShader;           //像素
@@ -310,6 +442,53 @@ void Render::initTriangle()
 	glDeleteShader(vertexShader);                      //清理中间资源
 	glDeleteShader(fragmentShader);                   //清理中间资源
 
+	unsigned int screenVertexShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(screenVertexShader, 1, &screenVertexShaderSource, nullptr);
+	glCompileShader(screenVertexShader);
+
+	glGetShaderiv(screenVertexShader, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog(screenVertexShader, 512, nullptr, infoLog);
+		std::cout << "Screen vertex shader failed:\n" << infoLog << std::endl;
+	}
+
+	unsigned int screenFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(screenFragmentShader, 1, &screenFragmentShaderSource, nullptr);
+	glCompileShader(screenFragmentShader);
+
+	glGetShaderiv(screenFragmentShader, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog(screenFragmentShader, 512, nullptr, infoLog);
+		std::cout << "Screen fragment shader failed:\n" << infoLog << std::endl;
+	}
+	screenShaderProgram = glCreateProgram();
+	glAttachShader(screenShaderProgram, screenVertexShader);
+	glAttachShader(screenShaderProgram, screenFragmentShader);
+	glLinkProgram(screenShaderProgram);
+
+	glGetProgramiv(screenShaderProgram, GL_LINK_STATUS, &success);
+	if (!success)
+	{
+		glGetProgramInfoLog(screenShaderProgram, 512, nullptr, infoLog);
+		std::cout << "Screen program link failed:\n" << infoLog << std::endl;
+	}
+	else
+	{
+		glUseProgram(screenShaderProgram);
+
+		int screenTextureLocation =
+			glGetUniformLocation(screenShaderProgram, "screenTexture");
+		glUniform1i(screenTextureLocation, 0);  // 固定读取纹理单元 0
+
+		glUseProgram(0);  // 结束本次初始化设置
+
+		std::cout << "Screen shader: ready\n";
+	}
+
+	glDeleteShader(screenVertexShader);
+	glDeleteShader(screenFragmentShader);
 	glGenVertexArrays(1, &VAO);        //创建解释并保留地址
 	glGenBuffers(1, &VBO);            //创建缓存并保留地址
 	glGenBuffers(1, &EBO);            //创建索引缓存并保留地址
@@ -333,11 +512,6 @@ void Render::initTriangle()
 	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(8 * sizeof(float)));   //定义顶点属性的布局（索引属性，vec数量，分量类型，数据是否初始化，分量步长，偏移量）
 	glEnableVertexAttribArray(3);          //启用索引
 	
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	int width;
 	int height;
@@ -352,6 +526,7 @@ void Render::initTriangle()
 	unsigned char* data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
 
 }
+
 
 void Render::clear(float r, float g, float b)  //清屏颜色设置
 {
@@ -386,6 +561,8 @@ int Render::getRenderMode() const     //获取渲染模式
 {
 	return renderMode;
 }
+
+
 
 void Render::drawScene(
 	float aspectRatio,
@@ -460,6 +637,7 @@ void Render::drawScene(
 
 	
 
+
 	glUniform1f(mixlocation, mixvalue);     //设置uniform变量值
 	glBindVertexArray(VAO);                //绑定顶点数据
 	glActiveTexture(GL_TEXTURE0);        //激活纹理单元0
@@ -469,6 +647,9 @@ void Render::drawScene(
 	glActiveTexture(GL_TEXTURE2);        //激活纹理单元2
 	glBindTexture(GL_TEXTURE_2D, emissionTexture);        //绑定发光纹理对象到目标
 	glUniform1i(isLightLocation, false);     //设置isLight为false，渲染普通物体
+
+
+
 
 	for (int i = 0; i < 10; i++)
 	{
@@ -490,4 +671,93 @@ void Render::drawScene(
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(lightModel));    // 设置光源的模型矩阵
 
 	glDrawArrays(GL_TRIANGLES, 0, 36);    // 绘制光源（使用相同的顶点数据，但可以使用不同的着色器来渲染为一个小的立方体）
+}
+
+void Render::cleanup()     //清理资源
+{
+	glDeleteFramebuffers(1, &sceneFBO);
+	sceneFBO = 0;
+	glDeleteTextures(1, &sceneColorTexture);
+	sceneColorTexture = 0;
+	glDeleteVertexArrays(1, &screenVAO);
+	glDeleteBuffers(1, &screenVBO);
+
+	screenVAO = 0;
+	screenVBO = 0;
+
+	glDeleteProgram(screenShaderProgram);
+	screenShaderProgram = 0;
+}
+
+void Render::beginScenePass()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
+	glViewport(0, 0, framebufferWidth, framebufferHeight);
+}
+
+void Render::endScenePass()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	int windowWidth = 0;
+	int windowHeight = 0;
+	glfwGetFramebufferSize(
+		glfwGetCurrentContext(), &windowWidth, &windowHeight
+	);
+
+	glViewport(0, 0, windowWidth, windowHeight);
+}
+
+
+void Render::drawScreen()
+{
+	glDisable(GL_DEPTH_TEST);  // 全屏显示不需要判断前后遮挡
+
+	glUseProgram(screenShaderProgram);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, sceneColorTexture);
+
+
+	glBindVertexArray(screenVAO);
+	glDrawArrays(GL_TRIANGLES, 0, 6);  // 两个三角形，覆盖整个视口
+
+	glBindVertexArray(0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glEnable(GL_DEPTH_TEST);  // 恢复当前工程的 3D 绘制状态
+}
+
+void Render::resizeSceneTarget(int width, int height)
+{
+	if (width <= 0 || height <= 0)
+		return;  // 不给附件分配零尺寸
+
+	if (width == framebufferWidth && height == framebufferHeight)
+		return;  // 尺寸没变化，不需要重新分配
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, sceneColorTexture);
+
+	glTexImage2D(
+		GL_TEXTURE_2D, 0, GL_RGB8,
+		width, height, 0,
+		GL_RGB, GL_UNSIGNED_BYTE, nullptr
+	); // 重新分配颜色纹理
+
+	glBindRenderbuffer(GL_RENDERBUFFER, sceneDepthRBO);
+
+	glRenderbufferStorage(
+		GL_RENDERBUFFER, GL_DEPTH_COMPONENT24,
+		width, height
+	); // 同步重新分配深度存储
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	framebufferWidth = width;
+	framebufferHeight = height;
+
+	std::cout << "Scene target resized: "
+		<< width << " x " << height << '\n';
 }
