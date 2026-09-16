@@ -9,6 +9,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <vector>
+#include <algorithm>
 
 float vertices[] =
 {
@@ -116,17 +118,29 @@ const char* fragmentShaderSource =               //片段着色器源码
 "uniform float specularStrength;\n"
 "uniform float shininess;\n"
 "uniform float emissionStrength;\n"
+"uniform float objectAlpha;\n"
 "uniform vec3 lightPos;\n"
 "uniform vec3 lightColor;\n"
 "uniform bool isLight;\n"
 "uniform vec3 viewPos;\n"
 "uniform int renderMode;\n"
+"uniform bool useCutout;\n"
 "void main()\n"
 "{\n"
 "if(isLight)\n"
 "{\n"
 "FragColor = vec4(lightColor, 1.0);\n"
 "return;\n"
+"}\n"
+"if (useCutout)\n"
+"{\n"
+"    vec3 maskColor = texture(emissionMap, TexCoord).rgb;\n"
+"    float maskValue = max(maskColor.r, max(maskColor.g, maskColor.b));\n"
+"\n"
+"    if (maskValue < 0.1)\n"
+"    {\n"
+"        discard;\n"
+"    }\n"
 "}\n"
 "if(renderMode==2)\n"
 "{\n"
@@ -175,7 +189,7 @@ const char* fragmentShaderSource =               //片段着色器源码
 " return;\n"
 "}\n"
 "vec3 result = (ambient + diffuse + specular) * baseColor + emission;\n"
-"FragColor = vec4(result , 1.0);\n"      
+"FragColor = vec4(result , objectAlpha);\n"      
 "}";
 
 const char* screenVertexShaderSource =
@@ -320,6 +334,11 @@ void Render::initTriangle()
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_MULTISAMPLE);
+
+	glBlendFunc(
+		GL_SRC_ALPHA,
+		GL_ONE_MINUS_SRC_ALPHA
+	);
 
 	int samepleBuffers = 0;
 	int samples = 0;
@@ -674,6 +693,13 @@ void Render::drawScene(
 	int specularMapLocation = glGetUniformLocation(shaderProgram, "specularMap");
 	glUniform1i(specularMapLocation, 1);     //设置镜面纹理单元为1
 
+	int useCutoutLocation =
+		glGetUniformLocation(shaderProgram, "useCutout");
+
+
+	int objectAlphaLocation =
+		glGetUniformLocation(shaderProgram, "objectAlpha");
+
 
 	glm::mat4 projection = glm::mat4(1.0f);
 
@@ -711,14 +737,62 @@ void Render::drawScene(
 
 
 
-	for (int i = 0; i < 10; i++)
+	auto drawCubeByIndex = [&](int index, float alpha)
+		{
+			glm::mat4 model = glm::mat4(1.0f);
+
+			model = glm::translate(
+				model,
+				cubePositions[index]
+			);
+
+			float angle = 20.0f * index;
+
+			model = glm::rotate(
+				model,
+				glm::radians(angle) + (float)glfwGetTime(),
+				glm::vec3(1.0f, 0.3f, 0.5f)
+			);
+
+			glUniformMatrix4fv(
+				modelLocation,
+				1,
+				GL_FALSE,
+				glm::value_ptr(model)
+			);
+
+			glUniform1f(objectAlphaLocation, alpha);
+
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		};
+
+
+	std::vector<int> transparentIndices = { 0, 8 };
+
+	// Opaque + Cutout阶段
+	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
+
+
+	for (int i = 1; i < 10; i++)
 	{
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, cubePositions[i]);
-		float angle = 20.0f * i;
-		model = glm::rotate(model, glm::radians(angle) + (float)glfwGetTime(), glm::vec3(1.0f, 0.3f, 0.5f));
-		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		bool isTransparent =
+			std::find(
+				transparentIndices.begin(),
+				transparentIndices.end(),
+				i
+			) != transparentIndices.end();
+		if (isTransparent)
+		{
+			continue;
+		}
+
+		bool useCutout = (i == 7);
+		glUniform1i(useCutoutLocation, useCutout);
+
+		drawCubeByIndex(i, 1.0f);
+
+		drawCubeByIndex(i, 1.0f);
 	}
 	glUniform1i(isLightLocation, true);     //设置isLight为true，渲染光源
 
@@ -731,6 +805,59 @@ void Render::drawScene(
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(lightModel));    // 设置光源的模型矩阵
 
 	glDrawArrays(GL_TRIANGLES, 0, 36);    // 绘制光源（使用相同的顶点数据，但可以使用不同的着色器来渲染为一个小的立方体）
+
+	// 光源已经画完，切回普通物体模式
+	glUniform1i(isLightLocation, false);
+
+	glUniform1i(useCutoutLocation, false);
+
+	glDepthMask(GL_FALSE);
+
+	// Transparent阶段
+	glEnable(GL_BLEND);
+	glDepthMask(GL_FALSE);
+
+	for (int index : transparentIndices)
+	{
+		drawCubeByIndex(index, 0.35f);
+	}
+
+	glDepthMask(GL_TRUE);
+	glDisable(GL_BLEND);
+
+	for (int index : transparentIndices)
+	{
+		drawCubeByIndex(index, 0.35f);
+	}
+
+	glDepthMask(GL_TRUE);
+
+	// 最后绘制透明物体
+	// 根据物体中心到相机的距离，从远到近排序
+	std::sort(
+		transparentIndices.begin(),
+		transparentIndices.end(),
+		[&](int a, int b)
+		{
+			glm::vec3 offsetA = cubePositions[a] - viewPos;
+			glm::vec3 offsetB = cubePositions[b] - viewPos;
+
+			float distanceA = glm::dot(offsetA, offsetA);
+			float distanceB = glm::dot(offsetB, offsetB);
+
+			return distanceA > distanceB;
+		}
+	);
+
+	// 绘制透明物体：深度测试开，深度写入关
+	glDepthMask(GL_FALSE);
+
+	for (int index : transparentIndices)
+	{
+		drawCubeByIndex(index, 0.35f);
+	}
+
+	glDepthMask(GL_TRUE);
 }
 
 void Render::cleanup()     //清理资源
@@ -789,7 +916,13 @@ void Render::endScenePass()
 	int windowWidth = 0;
 	int windowHeight = 0;
 
+	glfwGetFramebufferSize(
+		glfwGetCurrentContext(),
+		&windowWidth,
+		&windowHeight
+	);
 
+	glViewport(0, 0, windowWidth, windowHeight);
 }
 
 
