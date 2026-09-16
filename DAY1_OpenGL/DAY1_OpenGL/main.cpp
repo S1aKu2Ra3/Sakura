@@ -12,6 +12,7 @@ int main()
 	Camera camera;
 	float deltaTime = 0.0f;    //每帧时间差
 	float lastFrame = 0.0f;      //上次帧的时间
+	int postEffectMode = 1;  // 启动时保持反色
 	while ( !window.shouldClose())
 	{
 		float currentFrame = static_cast<float>(glfwGetTime());     //获取当前时间
@@ -62,7 +63,22 @@ int main()
 		{
 			render.setRenderMode(7);     //按下7键，设置为渲染模式7
 		}
-
+		if (window.isKeyPressed(GLFW_KEY_8))
+		{
+			postEffectMode = 0;
+		}
+		if (window.isKeyPressed(GLFW_KEY_9))
+		{
+			postEffectMode = 1;
+		}
+		if (window.isKeyPressed(GLFW_KEY_0))
+		{
+			postEffectMode = 2;
+		}
+		if (window.isKeyPressed(GLFW_KEY_B))
+		{
+			postEffectMode = 3;
+		}
 		render.clear(0.2f, 0.3f, 0.3f);    //清屏
 
 		render.beginScenePass();  // 新增：接下来写入场景 FBO
@@ -78,7 +94,7 @@ int main()
 
 		render.endScenePass();    // 新增：切回默认帧缓冲
 
-		render.drawScreen();
+		render.drawScreen(postEffectMode);
 			
 		window.swapBuffers();         //交换缓冲区
 

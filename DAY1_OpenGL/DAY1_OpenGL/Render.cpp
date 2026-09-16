@@ -191,13 +191,28 @@ const char* screenVertexShaderSource =
 
 const char* screenFragmentShaderSource =
 "#version 330 core\n"
+"uniform int postEffectMode;\n"
 "in vec2 TexCoord;\n"
 "out vec4 FragColor;\n"
 "uniform sampler2D screenTexture;\n"
 "void main()\n"
 "{\n"
 "    vec3 sceneColor = texture(screenTexture, TexCoord).rgb;\n"
-"    FragColor = vec4(sceneColor, 1.0);\n"
+"    vec3 outputColor = (postEffectMode == 1) ? vec3(1.0) - sceneColor : sceneColor;\n"
+"    if (postEffectMode == 2) {\n"
+"        float gray = dot(sceneColor, vec3(0.299, 0.587, 0.114));\n"
+"        outputColor = vec3(gray);\n"
+"    }\n"
+"    if (postEffectMode == 3) {\n"
+"        vec2 texelSize = 4.0 / vec2(textureSize(screenTexture, 0));\n"
+"        vec3 blurColor = sceneColor;\n"
+"        blurColor += texture(screenTexture, TexCoord + vec2(texelSize.x, 0.0)).rgb;\n"
+"        blurColor += texture(screenTexture, TexCoord - vec2(texelSize.x, 0.0)).rgb;\n"
+"        blurColor += texture(screenTexture, TexCoord + vec2(0.0, texelSize.y)).rgb;\n"
+"        blurColor += texture(screenTexture, TexCoord - vec2(0.0, texelSize.y)).rgb;\n"
+"        outputColor = blurColor / 5.0;\n"
+"    }\n"
+"    FragColor = vec4(outputColor, 1.0);\n"
 "}\n";
 
 
@@ -335,6 +350,9 @@ void Render::initTriangle()
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	glFramebufferTexture2D(
 		GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
@@ -477,6 +495,8 @@ void Render::initTriangle()
 	else
 	{
 		glUseProgram(screenShaderProgram);
+
+
 
 		int screenTextureLocation =
 			glGetUniformLocation(screenShaderProgram, "screenTexture");
@@ -709,11 +729,14 @@ void Render::endScenePass()
 }
 
 
-void Render::drawScreen()
+void Render::drawScreen(int postEffectMode)
 {
 	glDisable(GL_DEPTH_TEST);  // 全屏显示不需要判断前后遮挡
 
 	glUseProgram(screenShaderProgram);
+
+	GLint postEffectLocation = glGetUniformLocation(screenShaderProgram, "postEffectMode");
+	glUniform1i(postEffectLocation, postEffectMode);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, sceneColorTexture);

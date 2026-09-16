@@ -30,7 +30,7 @@ public:
 	void beginScenePass();  // 开始向场景 FBO 绘制
 	void endScenePass();    // 切回窗口默认帧缓冲
 
-	void drawScreen();  // 绘制屏幕四边形，使用场景 FBO 的颜色纹理
+	void drawScreen(int postEffectMode);  // 绘制屏幕四边形，使用场景 FBO 的颜色纹理
 
 	void resizeSceneTarget(int width, int height);
 
