@@ -225,12 +225,16 @@ unsigned int specularTexture;   //镜面纹理对象
 unsigned int emissionTexture;  //发光纹理对象
 unsigned int sceneFBO;    //帧缓冲对象
 unsigned int sceneColorTexture;    //帧缓冲纹理对象
-unsigned int sceneDepthRBO;    //帧缓冲渲染缓冲对象
 unsigned int screenVAO = 0;
 unsigned int screenVBO = 0;
 unsigned int screenShaderProgram = 0;
 int framebufferWidth = 0;
 int framebufferHeight = 0;
+constexpr GLsizei MSAA_SAMPLES = 4;
+
+unsigned int msaaFBO = 0;
+unsigned int msaaColorRBO = 0;
+unsigned int msaaDepthRBO = 0;
 
 
 float screenVertices[] =
@@ -359,21 +363,6 @@ void Render::initTriangle()
 		GL_TEXTURE_2D, sceneColorTexture, 0
 	); // 把这张纹理连接为当前 FBO 的第一个颜色附件
 
-	glGenRenderbuffers(1, &sceneDepthRBO);
-	glBindRenderbuffer(GL_RENDERBUFFER, sceneDepthRBO);
-
-	glRenderbufferStorage(
-		GL_RENDERBUFFER, GL_DEPTH_COMPONENT24,
-		framebufferWidth, framebufferHeight
-	); // 分配与颜色纹理尺寸一致的深度存储
-
-	glFramebufferRenderbuffer(
-		GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-		GL_RENDERBUFFER, sceneDepthRBO
-	); // 把 RBO 连接到当前 FBO 的深度附件位置
-
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
 	{
@@ -386,6 +375,61 @@ void Render::initTriangle()
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// 创建用于场景几何渲染的多采样 FBO
+	glGenFramebuffers(1, &msaaFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, msaaFBO);
+
+	// 多采样颜色附件
+	glGenRenderbuffers(1, &msaaColorRBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, msaaColorRBO);
+
+	glRenderbufferStorageMultisample(
+		GL_RENDERBUFFER,
+		MSAA_SAMPLES,
+		GL_RGB8,
+		framebufferWidth,
+		framebufferHeight
+	);
+
+	glFramebufferRenderbuffer(
+		GL_FRAMEBUFFER,
+		GL_COLOR_ATTACHMENT0,
+		GL_RENDERBUFFER,
+		msaaColorRBO
+	);
+
+	// 多采样深度附件
+	glGenRenderbuffers(1, &msaaDepthRBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, msaaDepthRBO);
+
+	glRenderbufferStorageMultisample(
+		GL_RENDERBUFFER,
+		MSAA_SAMPLES,
+		GL_DEPTH_COMPONENT24,
+		framebufferWidth,
+		framebufferHeight
+	);
+
+	glFramebufferRenderbuffer(
+		GL_FRAMEBUFFER,
+		GL_DEPTH_ATTACHMENT,
+		GL_RENDERBUFFER,
+		msaaDepthRBO
+	);
+
+	// 检查颜色和深度附件是否组成了完整 FBO
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << "MSAA FBO: complete\n";
+	}
+	else
+	{
+		std::cout << "MSAA FBO: incomplete\n";
+	}
+
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glGenVertexArrays(1, &screenVAO);
@@ -533,9 +577,6 @@ void Render::initTriangle()
 	glEnableVertexAttribArray(3);          //启用索引
 	
 
-	int width;
-	int height;
-	int nrChannels;
 
 	stbi_set_flip_vertically_on_load(true);
 
@@ -543,7 +584,6 @@ void Render::initTriangle()
 	specularTexture = loadTexture("container_specular.jpg");
 	emissionTexture = loadTexture("container_emission.jpg");
 
-	unsigned char* data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
 
 }
 
@@ -695,10 +735,22 @@ void Render::drawScene(
 
 void Render::cleanup()     //清理资源
 {
+	glDeleteFramebuffers(1, &msaaFBO);
+	msaaFBO = 0;
+
+	glDeleteRenderbuffers(1, &msaaColorRBO);
+	msaaColorRBO = 0;
+
+	glDeleteRenderbuffers(1, &msaaDepthRBO);
+	msaaDepthRBO = 0;
+
+	// Resolve 目标
 	glDeleteFramebuffers(1, &sceneFBO);
 	sceneFBO = 0;
+
 	glDeleteTextures(1, &sceneColorTexture);
 	sceneColorTexture = 0;
+
 	glDeleteVertexArrays(1, &screenVAO);
 	glDeleteBuffers(1, &screenVBO);
 
@@ -711,21 +763,33 @@ void Render::cleanup()     //清理资源
 
 void Render::beginScenePass()
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, msaaFBO);
 	glViewport(0, 0, framebufferWidth, framebufferHeight);
 }
 
 void Render::endScenePass()
 {
+	// 从多采样 FBO 读取
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, msaaFBO);
+
+	// 把结果写入普通 sceneColorTexture 所在的 FBO
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, sceneFBO);
+
+	// Resolve：将多个 Sample 合成为普通单采样像素
+	glBlitFramebuffer(
+		0, 0, framebufferWidth, framebufferHeight,
+		0, 0, framebufferWidth, framebufferHeight,
+		GL_COLOR_BUFFER_BIT,
+		GL_NEAREST
+	);
+
+	// Resolve 完成，回到默认帧缓冲
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	int windowWidth = 0;
 	int windowHeight = 0;
-	glfwGetFramebufferSize(
-		glfwGetCurrentContext(), &windowWidth, &windowHeight
-	);
 
-	glViewport(0, 0, windowWidth, windowHeight);
+
 }
 
 
@@ -768,12 +832,28 @@ void Render::resizeSceneTarget(int width, int height)
 		GL_RGB, GL_UNSIGNED_BYTE, nullptr
 	); // 重新分配颜色纹理
 
-	glBindRenderbuffer(GL_RENDERBUFFER, sceneDepthRBO);
 
-	glRenderbufferStorage(
-		GL_RENDERBUFFER, GL_DEPTH_COMPONENT24,
-		width, height
-	); // 同步重新分配深度存储
+	// 重新分配多采样颜色存储
+	glBindRenderbuffer(GL_RENDERBUFFER, msaaColorRBO);
+
+	glRenderbufferStorageMultisample(
+		GL_RENDERBUFFER,
+		MSAA_SAMPLES,
+		GL_RGB8,
+		width,
+		height
+	);
+
+	// 重新分配多采样深度存储
+	glBindRenderbuffer(GL_RENDERBUFFER, msaaDepthRBO);
+
+	glRenderbufferStorageMultisample(
+		GL_RENDERBUFFER,
+		MSAA_SAMPLES,
+		GL_DEPTH_COMPONENT24,
+		width,
+		height
+	);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
